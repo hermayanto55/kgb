@@ -1213,6 +1213,7 @@
             try {
                 await fetch(GAS_SCRIPT_URL, {
                     method: "POST",
+                    redirect: "follow",
                     body: JSON.stringify(payload),
                     headers: { "Content-Type": "text/plain;charset=utf-8" }
                 });
