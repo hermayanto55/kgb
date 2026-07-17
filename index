@@ -1157,13 +1157,28 @@
                 const json = await res.json();
                 if (json.status === "success" && json.data) {
                     const data = json.data;
-                    userList = data.userList || userList;
-                    pegawaiList = data.pegawaiList || pegawaiList;
-                    usulanList = data.usulanList || usulanList;
-                    satkerConfig = data.satkerConfig || defaultSatkerConfig;
-                    activeRegulations = data.activeRegulations || defaultRegulations;
-                    dbGajiPNS = data.dbGajiPNS || defaultDbGajiPNS;
-                    dbGajiPPPK = data.dbGajiPPPK || defaultDbGajiPPPK;
+                    if (!data.userList || data.userList.length === 0) {
+                        // Database kosong (baru dibuat), inisialisasi dan kirim data default ke Google Sheets
+                        initDefaultData();
+                        saveToDatabase({
+                            userList: userList,
+                            pegawaiList: pegawaiList,
+                            usulanList: usulanList,
+                            satkerConfig: satkerConfig,
+                            activeRegulations: activeRegulations,
+                            dbGajiPNS: dbGajiPNS,
+                            dbGajiPPPK: dbGajiPPPK,
+                            gajiReferenceVersion: GAJI_REFERENCE_VERSION
+                        });
+                    } else {
+                        userList = data.userList;
+                        pegawaiList = data.pegawaiList || [];
+                        usulanList = data.usulanList || [];
+                        satkerConfig = data.satkerConfig || defaultSatkerConfig;
+                        activeRegulations = data.activeRegulations || defaultRegulations;
+                        dbGajiPNS = data.dbGajiPNS || defaultDbGajiPNS;
+                        dbGajiPPPK = data.dbGajiPPPK || defaultDbGajiPPPK;
+                    }
                 } else {
                     initDefaultData();
                 }
@@ -1307,6 +1322,7 @@
                     code: authenticatedUser.username,
                     email: authenticatedUser.email 
                 };
+                sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
             } else {
                 err.classList.remove('hidden');
                 return;
@@ -3238,4 +3254,3 @@
     </script>
 </body>
 </html>
-
