@@ -1123,7 +1123,7 @@
 
         // --- GOOGLE APPS SCRIPT (GAS) BACKEND ---
         // Ganti URL di bawah ini dengan URL Web App Anda dari Google Apps Script
-        const GAS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhuUgTTnzT2YGG2aoFCuWBkL4ZI0Dk-nlQaQoU8WWucYkGPa0kl9RP6zb-4YPvUrKB/exec";
+        const GAS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxOy6O07PADMkuLJk-tQraQcZ_EEOW0zL6tIgOj3LsvOo6rXVFLzBfdhLMDaFp6TOuA/exec";
         
         let userList = [];
         let pegawaiList = [];
@@ -2467,7 +2467,7 @@
                 docHTML = `
                     <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.25; color: black; max-width: 100%;">
                         <div style="font-family: Tahoma, Arial, sans-serif; font-size: 12px; line-height: 1.2; display: flex; align-items: center; justify-content: center; border-bottom: 4px double black; padding-bottom: 8px; margin-bottom: 14px; position: relative;">
-                            <img src="${instansiLogoSrc}" style="width: 70px; height: 80px; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); object-fit: contain;" alt="Logo KPU">
+                            <img src="${instansiLogoSrc}" style="width: 60px; height: 70px; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); object-fit: contain;" alt="Logo KPU">
                             <div style="text-align: center; width: 100%; padding-left: 80px; padding-right: 20px;">
                                 <h1 style="font-size: 12px; font-weight: bold; margin: 0; letter-spacing: 0.5px; line-height: 1.2;">KOMISI PEMILIHAN UMUM</h1>
                                 <h2 style="font-size: 12px; font-weight: bold; margin: 2px 0 0 0; line-height: 1.2;">KABUPATEN ${satkerConfig.kabupaten.toUpperCase()}</h2>
@@ -2675,7 +2675,7 @@
                 docHTML = `
                     <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.25; color: black; max-width: 100%;">
                         <div style="font-family: Tahoma, Arial, sans-serif; font-size: 12px; line-height: 1.2; display: flex; align-items: center; justify-content: center; border-bottom: 4px double black; padding-bottom: 8px; margin-bottom: 14px; position: relative;">
-                            <img src="${instansiLogoSrc}" style="width: 70px; height: 80px; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); object-fit: contain;" alt="Logo KPU">
+                            <img src="${instansiLogoSrc}" style="width: 60px; height: 70px; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); object-fit: contain;" alt="Logo KPU">
                             <div style="text-align: center; width: 100%; padding-left: 80px; padding-right: 20px;">
                                 <h1 style="font-size: 12px; font-weight: bold; margin: 0; letter-spacing: 0.5px; line-height: 1.2;">KOMISI PEMILIHAN UMUM</h1>
                                 <h2 style="font-size: 12px; font-weight: bold; margin: 2px 0 0 0; line-height: 1.2;">KABUPATEN ${satkerConfig.kabupaten.toUpperCase()}</h2>
@@ -2702,9 +2702,9 @@
                                         <td width="15" style="width: 15px; text-align: center;">:</td>
                                         <td style="padding-left: 5px;">-</td>
                                     </tr>
-                                    <tr>
+                                    <tr style="vertical-align: top;">
                                         <td style="font-weight: bold; padding-bottom: 2px;">Perihal</td>
-                                        <td style="font-weight: bold;">:</td>
+                                        <td style="font-weight: bold; text-align: center;">:</td>
                                         <td style="font-weight: bold; padding-left: 5px;">
                                             Kenaikkan Gaji Berkala<br>
                                             An. ${item.nama}<br>
@@ -2715,10 +2715,10 @@
                                 </table>
                             </div>
                             <div style="text-align: right;">
+                                <div style="margin-bottom: 6px;">
+                                    ${satkerConfig.tempatSurat}, ${formatDateIndo(satkerConfig.tanggalSurat || item.tglSurat)}
+                                </div>
                                 <div style="text-align: left; display: inline-block; width: 260px;">
-                                    <div style="text-align: right; margin-bottom: 6px; margin-right: -20px;">
-                                        ${satkerConfig.tempatSurat}, ${formatDateIndo(satkerConfig.tanggalSurat || item.tglSurat)}
-                                    </div>
                                     <p style="font-weight: bold; margin: 0;">Kepada Yth:</p>
                                     <p style="font-weight: bold; margin: 0;">Kepala Kantor Pelayanan</p>
                                     <p style="font-weight: bold; margin: 0;">dan Perbendaharaan ${satkerConfig.kppn}</p>
