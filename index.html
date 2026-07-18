@@ -1,0 +1,3288 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Kenaikan Gaji Berkala - KPU Kab. Tanjung Jabung Timur</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- SheetJS Library for REAL Excel .xlsx import/export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Georgia', 'ui-serif', 'serif'],
+                        cinzel: ['Cinzel', 'serif']
+                    },
+                    colors: {
+                        kpu: {
+                            50: '#fdf3f4',
+                            100: '#fbe5e7',
+                            200: '#f5cdd1',
+                            300: '#eaa6ad',
+                            400: '#db737e',
+                            500: '#c84451',
+                            600: '#a72c38',
+                            700: '#8b2029',
+                            800: '#751e26',
+                            900: '#641b23', // Warna utama KPU Maroon
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        
+        .hide-view { display: none !important; }
+        .active-nav-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 4px solid #eaa6ad;
+            font-weight: 600;
+        }
+        .mobile-active-nav {
+            color: #8b2029;
+            font-weight: 700;
+        }
+        
+        /* High fidelity print layout */
+        @media print {
+            body { background: white !important; color: black !important; }
+            #custom-toast, #view-login, #main-sidebar { display: none !important; }
+            main > *:not(#print-view-container) { display: none !important; }
+            #print-view-container.hide-view { display: none !important; }
+            #print-view-container {
+                position: static !important;
+                inset: auto !important;
+                display: block !important;
+                background: white !important;
+                backdrop-filter: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                z-index: auto !important;
+            }
+            #print-view-container > div {
+                max-width: none !important;
+                width: 100% !important;
+                height: auto !important;
+                max-height: none !important;
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+                overflow: visible !important;
+            }
+            #print-view-container > div > div {
+                background: white !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+            .no-print { display: none !important; }
+            .print-area {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                max-width: none !important;
+                min-height: 0 !important;
+                font-family: Arial, sans-serif !important;
+                font-size: 12px !important;
+                line-height: 1.0 !important;
+            }
+            @page {
+                size: portrait;
+                margin: 0.75cm 1.84cm 0.9cm 1.6cm;
+            }
+        }
+    </style>
+
+    
+
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased overflow-hidden flex h-screen">
+
+    <!-- TOAST/ALERT NOTIFICATION CUSTOM -->
+    <div id="custom-toast" class="fixed top-5 right-5 z-50 transform translate-y-[-100px] opacity-0 transition-all duration-300 bg-emerald-600 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 font-semibold text-sm">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-lg"></i>
+        <span id="toast-message">Data berhasil disimpan!</span>
+    </div>
+
+    <!-- LOGIN SCREEN VIEW -->
+    <div id="view-login" class="fixed inset-0 bg-kpu-900 flex items-center justify-center z-50 p-4">
+        <div class="absolute inset-0 opacity-10 bg-no-repeat bg-center pointer-events-none" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/4/46/Logo_KPU.svg'); background-size: 40%;"></div>
+        
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative z-10 border border-kpu-100">
+            <div class="flex flex-col items-center mb-6">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Logo_KPU.svg" alt="Logo KPU" class="w-20 h-20 mb-3 drop-shadow-md">
+                <h1 class="text-xl font-bold text-kpu-900 text-center leading-tight">KOMISI PEMILIHAN UMUM</h1>
+                <p class="text-xs text-gray-500 font-semibold tracking-wide uppercase mt-1">Kab. Tanjung Jabung Timur</p>
+                <div class="w-12 h-1 bg-kpu-500 rounded mt-3"></div>
+            </div>
+            
+            <!-- LOGIN FORM WRAPPER -->
+            <div id="login-form-wrapper">
+                <form onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Username / NIP</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-user text-sm"></i>
+                            </span>
+                            <input type="text" id="login-username" required placeholder="Masukkan username" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-kpu-600 transition-all">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Password</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-lock text-sm"></i>
+                            </span>
+                            <input type="password" id="login-password" required placeholder="Masukkan password" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-kpu-600 transition-all">
+                        </div>
+                    </div>
+
+                    <div id="login-error" class="text-xs text-red-600 font-medium hidden">
+                        <i class="fa-solid fa-circle-exclamation mr-1"></i> Username atau password salah!
+                    </div>
+                    
+                    <div class="flex justify-end">
+                        <a href="#" onclick="showForgotPassword(event)" class="text-[11px] text-kpu-600 hover:text-kpu-800 hover:underline font-semibold">Lupa Password?</a>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-kpu-700 hover:bg-kpu-800 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-md text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+                        Masuk <i class="fa-solid fa-right-to-bracket"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- FORGOT PASSWORD FORM WRAPPER -->
+            <div id="forgot-password-wrapper" class="hidden space-y-4">
+                <div class="border-b pb-2 mb-2">
+                    <h2 class="text-lg font-bold text-kpu-900">Pemulihan Akun</h2>
+                    <p class="text-xs text-gray-400 font-medium">Masukkan kredensial Anda untuk memulihkan password.</p>
+                </div>
+                <form onsubmit="handleForgotPassword(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Username / NIP</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-user text-sm"></i>
+                            </span>
+                            <input type="text" id="forgot-username" required placeholder="NIP atau Username Anda" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-kpu-600 transition-all">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Email Terdaftar</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-envelope text-sm"></i>
+                            </span>
+                            <input type="email" id="forgot-email" required placeholder="contoh@kpu.go.id" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-kpu-600 transition-all">
+                        </div>
+                    </div>
+
+                    <div id="forgot-error" class="text-xs text-red-600 font-medium hidden">
+                        <i class="fa-solid fa-circle-exclamation mr-1"></i> Data NIP atau Email tidak cocok!
+                    </div>
+
+                    <div id="forgot-success" class="text-xs text-emerald-800 font-medium hidden bg-emerald-50 border border-emerald-150 p-3 rounded-lg leading-relaxed">
+                        <i class="fa-solid fa-circle-check text-emerald-600 mr-1"></i> Akun terverifikasi! Password Anda adalah: 
+                        <span id="recovered-password" class="block text-sm font-extrabold text-kpu-900 tracking-wider mt-1 select-all bg-white py-1 px-2 border rounded text-center"></span>
+                    </div>
+
+                    <button type="submit" id="btn-forgot-submit" class="w-full bg-kpu-700 hover:bg-kpu-800 text-white font-bold py-3 px-4 rounded-lg transition-colors shadow-md text-sm uppercase tracking-wider flex items-center justify-center gap-2">
+                        Verifikasi Akun <i class="fa-solid fa-key"></i>
+                    </button>
+                    
+                    <button type="button" onclick="showLoginForm(event)" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 px-4 rounded-lg text-xs uppercase tracking-wider transition-colors">
+                        Kembali ke Login
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- DESKTOP NAVIGATION SIDEBAR -->
+    <aside id="main-sidebar" class="w-64 bg-kpu-900 text-white hidden md:flex flex-col h-full shadow-2xl z-20 flex-shrink-0 no-print">
+        <div class="px-6 py-6 flex items-center gap-3 border-b border-kpu-800">
+            <img id="sidebar-logo" src="https://upload.wikimedia.org/wikipedia/commons/4/46/Logo_KPU.svg" alt="Logo KPU" class="w-10 h-10 object-contain">
+            <div>
+                <h1 class="font-extrabold text-sm leading-tight tracking-wide">KPU KABUPATEN</h1>
+                <p class="text-[10px] text-kpu-300 font-bold uppercase tracking-wider">Tanjung Jabung Timur</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1">
+                <li>
+                    <a href="#" onclick="switchView('dashboard')" id="nav-desktop-dashboard" class="nav-item active-nav-item flex items-center gap-3 px-6 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors border-l-4">
+                        <i class="fa-solid fa-house w-5 text-center"></i> Dashboard
+                    </a>
+                </li>
+                <li class="admin-only">
+                    <a href="#" onclick="switchView('pegawai')" id="nav-desktop-pegawai" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors border-l-4 border-transparent">
+                        <i class="fa-solid fa-users w-5 text-center"></i> Data Pegawai
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="switchView('pengajuan')" id="nav-desktop-pengajuan" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors border-l-4 border-transparent">
+                        <i class="fa-solid fa-pen-to-square w-5 text-center"></i> Pengajuan KGB
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="switchView('daftar-usulan')" id="nav-desktop-daftar-usulan" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors border-l-4 border-transparent">
+                        <i class="fa-solid fa-list-check w-5 text-center"></i> Daftar Usulan KGB
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="switchView('referensi')" id="nav-desktop-referensi" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors border-l-4 border-transparent">
+                        <i class="fa-solid fa-book-bookmark w-5 text-center"></i> Referensi Gaji Pokok
+                    </a>
+                </li>
+                <li class="pt-4 border-t border-kpu-800 admin-only">
+                    <span class="px-6 text-[10px] font-bold text-kpu-300 uppercase tracking-wider block mb-2">Konfigurasi</span>
+                </li>
+                <li class="admin-only">
+                    <a href="#" onclick="switchView('satker')" id="nav-desktop-satker" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors border-l-4 border-transparent">
+                        <i class="fa-solid fa-building-flag w-5 text-center"></i> Pengaturan Satker
+                    </a>
+                </li>
+                <li class="admin-only">
+                    <a href="#" onclick="switchView('peraturan')" id="nav-desktop-peraturan" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors border-l-4 border-transparent">
+                        <i class="fa-solid fa-scale-balanced w-5 text-center"></i> Pengaturan Peraturan
+                    </a>
+                </li>
+                <li class="admin-only">
+                    <a href="#" onclick="switchView('user')" id="nav-desktop-user" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors border-l-4 border-transparent">
+                        <i class="fa-solid fa-user-gear w-5 text-center"></i> Pengaturan User
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="p-4 border-t border-kpu-800 flex items-center justify-between hover:bg-kpu-800 cursor-pointer transition-colors" onclick="logout()">
+            <div class="flex items-center gap-3">
+                <div id="user-avatar-container" class="w-10 h-10 bg-white text-kpu-900 rounded-full flex items-center justify-center font-bold">A</div>
+                <div>
+                    <p id="user-display-name" class="text-sm font-bold text-white">Admin KPU</p>
+                    <p id="user-display-role" class="text-xs text-kpu-300">Sekretariat Jenderal</p>
+                </div>
+            </div>
+            <i class="fa-solid fa-right-from-bracket text-sm text-kpu-300 hover:text-white" title="Keluar"></i>
+        </div>
+    </aside>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="flex-1 flex flex-col h-full w-full relative bg-[#f8f9fa] overflow-hidden">
+        
+        <!-- HEADER MOBILE -->
+        <header class="md:hidden bg-kpu-900 text-white p-4 flex justify-between items-center z-10 shadow-md no-print">
+            <div class="flex items-center gap-2">
+                <img id="mobile-header-logo" src="https://upload.wikimedia.org/wikipedia/commons/4/46/Logo_KPU.svg" alt="Logo KPU" class="w-8 h-8 object-contain">
+                <div>
+                    <h1 class="font-bold text-xs leading-none">KPU TJT</h1>
+                    <p class="text-[9px] text-kpu-200">Sistem KGB Online</p>
+                </div>
+            </div>
+            <button onclick="logout()" class="text-white hover:text-kpu-300 transition-colors">
+                <i class="fa-solid fa-right-from-bracket text-lg"></i>
+            </button>
+        </header>
+
+        <!-- SCROLLABLE CONTENT AREA -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-28 md:pb-8 relative no-print">
+            
+            <!-- WATERMARK BACKGROUND (Logo KPU) -->
+            <div class="absolute top-0 right-0 opacity-[0.03] pointer-events-none z-0">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Logo_KPU.svg" alt="KPU Logo BG" style="width: 450px; transform: rotate(-12deg) translate(20%, -5%);">
+            </div>
+
+            <!-- VIEW 1: DASHBOARD -->
+            <div id="view-dashboard" class="app-view relative z-10 max-w-6xl mx-auto">
+                <div class="flex justify-between items-start mb-6 hidden md:flex">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-900">Dashboard Utama</h2>
+                        <p class="text-gray-500 text-sm mt-1">Sistem Kenaikan Gaji Berkala (KGB) • <span class="font-semibold text-kpu-700" id="dash-satker-name">KPU Kabupaten Tanjung Jabung Timur</span></p>
+                    </div>
+                </div>
+                
+                <div class="bg-gradient-to-r from-kpu-900 to-kpu-700 text-white rounded-2xl p-5 md:p-6 mb-6 shadow-lg relative overflow-hidden">
+                    <div class="relative z-10">
+                        <p class="text-xs md:text-sm opacity-80 mb-1">Selamat datang kembali,</p>
+                        <h2 id="welcome-user-name" class="text-xl md:text-2xl font-bold mb-1">Administrator KPU</h2>
+                        <p class="text-[10px] md:text-xs opacity-90" id="welcome-satker-full">Sekretariat Komisi Pemilihan Umum Kabupaten Tanjung Jabung Timur</p>
+                    </div>
+                    <i class="fa-solid fa-stamp absolute -right-6 -bottom-6 text-9xl opacity-10 transform -rotate-12"></i>
+                </div>
+
+                <!-- PANEL NOTIFIKASI PEGAWAI AKAN KGB (3 BULAN KE DEPAN) -->
+                <div id="dashboard-kgb-alerts" class="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-5 mb-6 hidden">
+                    <div class="flex items-center gap-2 text-amber-800 font-bold mb-3 text-xs md:text-sm">
+                        <i class="fa-solid fa-bell text-amber-600 animate-bounce text-base"></i>
+                        <h3 id="panel-notif-title">Notifikasi: Pegawai Masuk Masa KGB (3 Bulan ke Depan)</h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="kgb-alert-list"></div>
+                </div>
+
+                <!-- Dashboard Count Info Cards -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6 admin-only">
+                    <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 shadow-sm border border-gray-100 flex items-center gap-3 md:gap-4 hover:shadow-md transition-shadow">
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-kpu-900 text-white flex items-center justify-center text-lg md:text-xl flex-shrink-0">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] md:text-xs text-gray-500 font-medium">Total Pegawai</p>
+                            <h3 class="text-base md:text-2xl font-bold text-gray-900 leading-tight" id="dash-total-pegawai">3</h3>
+                            <p class="text-[9px] md:text-[10px] text-gray-400">PNS & PPPK</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 shadow-sm border border-gray-100 flex items-center gap-3 md:gap-4 hover:shadow-md transition-shadow">
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-amber-500 text-white flex items-center justify-center text-lg md:text-xl flex-shrink-0">
+                            <i class="fa-solid fa-file-invoice"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] md:text-xs text-gray-500 font-medium">Usulan KGB</p>
+                            <h3 class="text-base md:text-2xl font-bold text-gray-900 leading-tight" id="dash-total-usulan">3</h3>
+                            <p class="text-[9px] md:text-[10px] text-gray-400">Total Pengajuan</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 shadow-sm border border-gray-100 flex items-center gap-3 md:gap-4 hover:shadow-md transition-shadow">
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-lg md:text-xl flex-shrink-0">
+                            <i class="fa-solid fa-spinner"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] md:text-xs text-gray-500 font-medium">Dalam Proses</p>
+                            <h3 class="text-base md:text-2xl font-bold text-gray-900 leading-tight" id="dash-proses-usulan">1</h3>
+                            <p class="text-[9px] md:text-[10px] text-gray-400">Persetujuan</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl md:rounded-2xl p-4 md:p-5 shadow-sm border border-gray-100 flex items-center gap-3 md:gap-4 hover:shadow-md transition-shadow">
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center text-lg md:text-xl flex-shrink-0">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] md:text-xs text-gray-500 font-medium">Selesai SK</p>
+                            <h3 class="text-base md:text-2xl font-bold text-gray-900 leading-tight" id="dash-selesai-usulan">2</h3>
+                            <p class="text-[9px] md:text-[10px] text-gray-400">Tercetak</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-6 flex flex-col justify-between admin-only">
+                        <div>
+                            <h3 class="text-xs md:text-sm font-bold text-gray-800 mb-4 uppercase tracking-wider">Komposisi Usulan KGB</h3>
+                        </div>
+                        <div class="relative flex items-center justify-center h-40 md:h-48">
+                            <canvas id="kgbChart"></canvas>
+                        </div>
+                        <div class="mt-4 space-y-2 text-xs">
+                            <div class="flex justify-between items-center">
+                                <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-kpu-900"></span> Diajukan</span>
+                                <span class="font-bold" id="lbl-chart-diajukan">1</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span> Diproses</span>
+                                <span class="font-bold" id="lbl-chart-diproses">0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span> Disetujui</span>
+                                <span class="font-bold" id="lbl-chart-disetujui">2</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 md:p-6 lg:col-span-2 col-span-3">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xs md:text-sm font-bold text-gray-800 uppercase tracking-wider">Pengajuan KGB Terbaru</h3>
+                            <button onclick="switchView('daftar-usulan')" class="text-[10px] md:text-xs text-kpu-700 hover:text-kpu-800 font-bold uppercase tracking-wider">Lihat Semua</button>
+                        </div>
+
+                        <div class="space-y-3" id="dash-recent-list"></div>
+                        
+                        <div class="mt-6 flex justify-end">
+                            <button onclick="switchView('pengajuan')" class="w-full sm:w-auto bg-kpu-700 hover:bg-kpu-800 text-white text-xs font-bold py-3 px-6 rounded-lg shadow-md uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-plus"></i> Tambah Pengajuan Baru
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 2: DATA PEGAWAI -->
+            <div id="view-pegawai" class="app-view hide-view relative z-10 max-w-6xl mx-auto">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-900">Data Pegawai</h2>
+                        <p class="text-xs text-gray-500">Kelola master data aparatur sipil (PNS & PPPK) untuk mempermudah usulan KGB.</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+                        <div class="grid grid-cols-2 gap-2 w-full sm:w-auto">
+                            <button onclick="downloadExcelTemplate()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] md:text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1.5 shadow uppercase tracking-wider transition-colors">
+                                <i class="fa-solid fa-file-excel"></i> Template
+                            </button>
+                            <label for="import-excel-file" class="bg-amber-500 hover:bg-amber-600 text-white text-[11px] md:text-xs font-bold py-2.5 px-3 rounded-lg flex items-center justify-center gap-1.5 shadow uppercase tracking-wider cursor-pointer transition-colors text-center">
+                                <i class="fa-solid fa-file-import"></i> Import
+                            </label>
+                        </div>
+                        <input type="file" id="import-excel-file" accept=".xlsx, .xls" onchange="handleExcelImport(event)" class="hidden">
+                        
+                        <button onclick="openAddPegawaiModal()" class="w-full sm:w-auto bg-kpu-700 hover:bg-kpu-800 text-white text-xs font-bold py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 shadow uppercase tracking-wider transition-colors">
+                            <i class="fa-solid fa-user-plus"></i> Tambah Pegawai
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-4 md:p-6 border-b border-gray-100 flex flex-col sm:flex-row gap-3 justify-between items-center bg-gray-50/50">
+                        <div class="relative w-full sm:w-80">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                            <input type="text" id="search-pegawai" oninput="filterPegawaiTable()" placeholder="Cari nama atau NIP..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-kpu-500 bg-white">
+                        </div>
+                        <select id="filter-pegawai-tipe" onchange="filterPegawaiTable()" class="w-full sm:w-auto border border-gray-200 rounded-lg text-xs px-3 py-2 bg-white focus:outline-none font-bold text-gray-600">
+                            <option value="SEMUA">Semua Status</option>
+                            <option value="PNS">PNS</option>
+                            <option value="PPPK">PPPK</option>
+                        </select>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-gray-600 whitespace-nowrap">
+                            <thead class="text-xs text-gray-700 bg-gray-50 uppercase sticky top-0 shadow-sm z-10 font-bold border-b">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4">No</th>
+                                    <th scope="col" class="px-6 py-4">Nama Pegawai / NIP</th>
+                                    <th scope="col" class="px-6 py-4">Jenis Pegawai</th>
+                                    <th scope="col" class="px-6 py-4">Pangkat / Golongan</th>
+                                    <th scope="col" class="px-6 py-4">Masa Kerja (SK Terakhir)</th>
+                                    <th scope="col" class="px-6 py-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 font-medium" id="table-pegawai-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: PENGAJUAN KGB WIZARD -->
+            <div id="view-pengajuan" class="app-view hide-view relative z-10 max-w-5xl mx-auto">
+                <div class="flex items-center gap-3 mb-6">
+                    <button onclick="switchView('dashboard')" class="bg-white hover:bg-gray-100 w-9 h-9 rounded-full flex items-center justify-center shadow-sm border transition-colors">
+                        <i class="fa-solid fa-arrow-left text-gray-600"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-900">Buat Pengajuan KGB</h2>
+                        <p class="text-xs text-gray-500">Pilih tipe aparatur dan lengkapi detail pengajuan untuk membuat draf surat.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row">
+                    <!-- Left Stepper Side -->
+                    <div class="w-full md:w-60 bg-gray-50 border-b md:border-b-0 md:border-r border-gray-100 p-4 md:p-6 flex-shrink-0">
+                        <div class="mb-4 hidden md:block">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Langkah Pengisian</span>
+                        </div>
+                        <ul class="flex md:flex-col justify-around md:justify-start md:space-y-4 gap-2">
+                            <li class="flex items-center gap-2 step-item active-step" id="step-nav-1">
+                                <span class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-kpu-900 text-white flex items-center justify-center font-bold text-xs md:text-sm">1</span>
+                                <span class="text-[10px] md:text-xs font-bold text-kpu-900">Data Dasar</span>
+                            </li>
+                            <li class="flex items-center gap-2 step-item opacity-50" id="step-nav-2">
+                                <span class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-white border-2 border-gray-300 text-gray-500 flex items-center justify-center font-bold text-xs md:text-sm">2</span>
+                                <span class="text-[10px] md:text-xs font-bold text-gray-600">SK Terakhir</span>
+                            </li>
+                            <li class="flex items-center gap-2 step-item opacity-50" id="step-nav-3">
+                                <span class="w-6 h-6 md:w-8 md:h-8 rounded-full bg-white border-2 border-gray-300 text-gray-500 flex items-center justify-center font-bold text-xs md:text-sm">3</span>
+                                <span class="text-[10px] md:text-xs font-bold text-gray-600">Pratinjau</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Right Form Side -->
+                    <div class="flex-1 p-5 md:p-8">
+                        <!-- Step 1 View -->
+                        <div id="step-content-1" class="space-y-4">
+                            <h3 class="text-sm md:text-md font-bold text-gray-800 border-b pb-2 uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-user-gear text-kpu-600"></i> Informasi Kepegawaian</h3>
+                            
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Ambil dari Master Data Pegawai (Opsional)</label>
+                                <select id="form-import-pegawai" onchange="autoFillFromMaster()" class="w-full px-3 py-2 border rounded-lg text-sm bg-white font-medium focus:ring-2 focus:ring-kpu-500 outline-none">
+                                    <option value="">-- Pilih Pegawai untuk Autocomplete --</option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Jenis Pegawai</label>
+                                    <select id="form-jenis-pegawai" onchange="togglePegawaiType()" class="w-full px-3 py-2 border rounded-lg text-sm bg-gray-100 font-bold text-kpu-800 focus:ring-2 focus:ring-kpu-500 outline-none" disabled>
+                                        <option value="PNS">Pegawai Negeri Sipil (PNS)</option>
+                                        <option value="PPPK">Pegawai Pemerintah dengan Perjanjian Kerja (PPPK)</option>
+                                    </select>
+                                    <p class="text-[9px] md:text-[10px] text-gray-400 mt-1 font-semibold">* Otomatis terisi berdasarkan pilihan master data pegawai</p>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1" id="label-nip">NIP / Nomor Identitas</label>
+                                    <input type="text" id="form-nip" required placeholder="Masukkan NIP" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nama Lengkap</label>
+                                    <input type="text" id="form-nama" required placeholder="Nama tanpa gelar/dengan gelar" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1" id="label-golongan">Pangkat / Golongan Ruang</label>
+                                    <select id="form-golongan" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-kpu-500 outline-none"></select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Unit Kerja / Penempatan</label>
+                                    <input type="text" id="form-unit-kerja" value="Sekretariat KPU Kab. Tanjung Jabung Timur" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tanggal Buat Surat</label>
+                                    <input type="date" id="form-tgl-surat" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end pt-4">
+                                <button onclick="nextStep(2)" class="w-full sm:w-auto bg-kpu-700 hover:bg-kpu-800 text-white font-bold py-2.5 px-6 rounded-lg text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
+                                    Lanjut <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 View -->
+                        <div id="step-content-2" class="space-y-4 hide-view">
+                            <h3 class="text-sm md:text-md font-bold text-gray-800 border-b pb-2 uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-file-invoice text-kpu-600"></i> SK Terakhir & Gaji Pokok</h3>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Pejabat Pengesah SK</label>
+                                    <input type="text" id="form-sk-pejabat" value="Sekretaris Jenderal Komisi Pemilihan Umum Republik Indonesia" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tanggal SK Terakhir</label>
+                                    <input type="date" id="form-sk-tgl" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nomor SK Terakhir</label>
+                                    <input type="text" id="form-sk-nomor" placeholder="Contoh: 548 Tahun 2024" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tgl Mulai Berlaku Gaji</label>
+                                    <input type="date" id="form-sk-tmt" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Masa Kerja SK (Tahun)</label>
+                                    <input type="number" id="form-mkg-thn" min="0" max="40" placeholder="0" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Masa Kerja SK (Bulan)</label>
+                                    <input type="number" id="form-mkg-bln" min="0" max="11" placeholder="0" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col gap-3">
+                                <span class="text-xs font-bold text-gray-600 uppercase tracking-wide">Estimasi Gaji Pokok Berdasarkan Database Resmi</span>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="bg-white p-3 rounded-lg border border-gray-200">
+                                        <p class="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase">Gaji Pokok Terakhir</p>
+                                        <p id="calc-gaji-lama" class="text-base md:text-lg font-extrabold text-gray-700">Rp 0,-</p>
+                                    </div>
+                                    <div class="bg-kpu-50 p-3 rounded-lg border border-kpu-100">
+                                        <p class="text-[9px] md:text-[10px] text-kpu-600 font-bold uppercase">Proyeksi Gaji Baru (+2 Tahun KGB)</p>
+                                        <p id="calc-gaji-baru" class="text-base md:text-lg font-extrabold text-kpu-900">Rp 0,-</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-3">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-white border border-blue-200 text-blue-700 flex items-center justify-center flex-shrink-0">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <label for="form-berkas-kgb" class="block text-xs font-bold text-gray-700 uppercase mb-1">Unggah Berkas KGB</label>
+                                        <p class="text-[10px] text-gray-500 mb-2">PDF, JPG, PNG, DOC, atau DOCX. Maksimal 3 MB per berkas dan 3 berkas.</p>
+                                        <input type="file" id="form-berkas-kgb" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,application/pdf,image/jpeg,image/png" onchange="handleKgbFiles(event)" class="block w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-blue-700 file:text-white file:font-bold hover:file:bg-blue-800 cursor-pointer">
+                                    </div>
+                                </div>
+                                <div id="kgb-file-list" class="space-y-2"></div>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-2 pt-4">
+                                <button onclick="nextStep(1)" class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2.5 px-6 rounded-lg text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-chevron-left"></i> Kembali
+                                </button>
+                                <button onclick="nextStep(3)" class="w-full sm:w-auto bg-kpu-700 hover:bg-kpu-800 text-white font-bold py-2.5 px-6 rounded-lg text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 sm:ml-auto">
+                                    Lanjut <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 View -->
+                        <div id="step-content-3" class="space-y-4 hide-view">
+                            <h3 class="text-sm md:text-md font-bold text-gray-800 border-b pb-2 uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-clipboard-check text-kpu-600"></i> Konfirmasi Pengajuan</h3>
+                            
+                            <div class="bg-yellow-50 text-yellow-900 p-4 rounded-xl border border-yellow-200 text-xs leading-relaxed space-y-1">
+                                <p class="font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> Informasi Ketentuan KGB:</p>
+                                <p>Sistem secara otomatis akan menjadwalkan <strong>Kenaikan Gaji Berkala Berikutnya (YAD)</strong> 2 tahun dari masa mulai berlakunya gaji pokok baru.</p>
+                            </div>
+
+                            <div class="bg-white p-4 rounded-xl border space-y-2 text-xs md:text-sm">
+                                <div class="grid grid-cols-2">
+                                    <span class="text-gray-500 font-medium">Nama Pegawai:</span>
+                                    <span class="font-bold text-gray-900" id="conf-nama">-</span>
+                                </div>
+                                <div class="grid grid-cols-2">
+                                    <span class="text-gray-500 font-medium" id="conf-lbl-nip">NIP:</span>
+                                    <span class="font-bold text-gray-900" id="conf-nip">-</span>
+                                </div>
+                                <div class="grid grid-cols-2">
+                                    <span class="text-gray-500 font-medium">Tipe / Golongan:</span>
+                                    <span class="font-bold text-gray-900" id="conf-golongan">-</span>
+                                </div>
+                                <div class="grid grid-cols-2">
+                                    <span class="text-gray-500 font-medium">Mulai Berlaku Gaji:</span>
+                                    <span class="font-bold text-gray-900" id="conf-tmt">-</span>
+                                </div>
+                                <div class="grid grid-cols-2 border-t pt-2 mt-2">
+                                    <span class="text-kpu-700 font-bold">Gaji Baru:</span>
+                                    <span class="font-bold text-kpu-900" id="conf-gaji-baru">-</span>
+                                </div>
+                                <div class="grid grid-cols-2 border-t pt-2 mt-2">
+                                    <span class="text-gray-500 font-medium">Berkas KGB:</span>
+                                    <span class="font-bold text-gray-900" id="conf-berkas-kgb">Belum ada berkas</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row gap-2 pt-4">
+                                <button onclick="nextStep(2)" class="w-full sm:w-auto bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2.5 px-6 rounded-lg text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-chevron-left"></i> Kembali
+                                </button>
+                                <button onclick="saveKgbSubmission()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-lg text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 shadow sm:ml-auto">
+                                    <i class="fa-solid fa-file-circle-check"></i> Proses & Simpan Draf
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 4: DAFTAR USULAN -->
+            <div id="view-daftar-usulan" class="app-view hide-view relative z-10 max-w-6xl mx-auto h-full flex flex-col">
+                <div class="flex items-center gap-3 mb-6">
+                    <button class="md:hidden w-8 h-8 bg-white rounded-full flex items-center justify-center shadow" onclick="switchView('dashboard')">
+                        <i class="fa-solid fa-arrow-left text-gray-600"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-900">Daftar Usulan KGB</h2>
+                        <p class="text-xs text-gray-500">Gunakan tombol cetak untuk mencetak format surat resmi KPU Tanjung Jabung Timur.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 flex-1 flex flex-col overflow-hidden">
+                    <div class="p-4 md:p-6 border-b border-gray-100 flex flex-col sm:flex-row gap-3 justify-between items-center bg-gray-50/50">
+                        <div class="relative w-full sm:w-80">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm"></i>
+                            <input type="text" id="search-usulan" oninput="filterUsulanTable()" placeholder="Cari nama atau NIP..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-kpu-500 bg-white">
+                        </div>
+                        <div class="flex w-full sm:w-auto gap-3">
+                            <select id="filter-tipe" onchange="filterUsulanTable()" class="border border-gray-200 rounded-lg text-xs px-3 py-2 bg-white focus:outline-none flex-1 sm:flex-none font-bold text-gray-600">
+                                <option value="SEMUA">Semua Jenis</option>
+                                <option value="PNS">PNS</option>
+                                <option value="PPPK">PPPK</option>
+                            </select>
+                            <button onclick="switchView('pengajuan')" class="bg-kpu-700 hover:bg-kpu-800 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap shadow-sm uppercase tracking-wider">
+                                <i class="fa-solid fa-plus"></i> Buat Baru
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-x-auto relative">
+                        <table class="w-full text-left text-sm text-gray-600 whitespace-nowrap">
+                            <thead class="text-xs text-gray-700 bg-gray-50 uppercase sticky top-0 shadow-sm z-10 font-bold border-b">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4">No</th>
+                                    <th scope="col" class="px-6 py-4">Nama Pegawai / NIP</th>
+                                    <th scope="col" class="px-6 py-4">Pangkat / Gol</th>
+                                    <th scope="col" class="px-6 py-4">TMT KGB Baru</th>
+                                    <th scope="col" class="px-6 py-4">Gaji Pokok Baru</th>
+                                    <th scope="col" class="px-6 py-4">Jenis Pegawai</th>
+                                    <th scope="col" class="px-6 py-4">Status</th>
+                                    <th scope="col" class="px-6 py-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 font-medium" id="table-usulan-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 5: REFERENSI GAJI POKOK -->
+            <div id="view-referensi" class="app-view hide-view relative z-10 max-w-6xl mx-auto">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-900">Referensi Gaji Pokok Terstruktur</h2>
+                        <p class="text-xs text-gray-500">Master gaji pokok resmi: PNS Gol I-IV (PP 5/2024) dan PPPK Gol I-XVII (Perpres 11/2024).</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto admin-only">
+                        <button onclick="downloadReferenceTemplate()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 shadow uppercase tracking-wider transition-colors">
+                            <i class="fa-solid fa-file-excel"></i> Template & Ekspor
+                        </button>
+                        <label for="import-ref-file" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 shadow uppercase tracking-wider cursor-pointer transition-colors">
+                            <i class="fa-solid fa-file-import"></i> Unggah Excel
+                        </label>
+                        <input type="file" id="import-ref-file" accept=".xlsx, .xls" onchange="handleReferenceImport(event)" class="hidden">
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-6 space-y-6">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex bg-gray-100 p-1 rounded-xl max-w-sm">
+                            <button id="ref-btn-pns" onclick="toggleRefGaji('PNS')" class="flex-1 py-2 px-4 rounded-lg font-bold text-xs uppercase tracking-wider transition-all bg-white text-kpu-900 shadow-sm">
+                                PNS (Gol I - IV)
+                            </button>
+                            <button id="ref-btn-pppk" onclick="toggleRefGaji('PPPK')" class="flex-1 py-2 px-4 rounded-lg font-bold text-xs uppercase tracking-wider transition-all text-gray-600 hover:text-gray-800">
+                                PPPK (Gol I - XVII)
+                            </button>
+                        </div>
+                        
+                        <!-- Sub-group selectors to avoid messy side scrolling -->
+                        <select id="selector-ref-subgroup" onchange="renderReferenceTable()" class="border border-gray-200 rounded-lg text-xs px-3 py-2 bg-white focus:outline-none font-bold text-gray-600">
+                            <!-- Populated Dynamically -->
+                        </select>
+
+                        <button onclick="addNewMkgRow()" class="admin-only bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3.5 rounded-lg flex items-center gap-1 shadow transition-colors ml-auto">
+                            <i class="fa-solid fa-plus-circle"></i> Tambah Masa Kerja
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto border rounded-xl" id="container-tabel-gaji"></div>
+                </div>
+            </div>
+
+            <!-- VIEW 6: PENGATURAN PERATURAN -->
+            <div id="view-peraturan" class="app-view hide-view relative z-10 max-w-4xl mx-auto admin-only">
+                <div class="mb-6">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-900">Pengaturan Peraturan Terkait</h2>
+                    <p class="text-xs text-gray-500">Konfigurasi dasar hukum & judul UU/Perpres yang akan dicetak di dalam surat usulan.</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Peraturan Acuan PNS</label>
+                        <textarea id="per-pns-text" rows="3" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Peraturan Acuan PPPK</label>
+                        <textarea id="per-pppk-text" rows="3" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500"></textarea>
+                    </div>
+                    <div class="flex justify-end pt-4">
+                        <button onclick="saveRegulations()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-8 rounded-lg text-xs uppercase tracking-wider transition-all shadow-md">
+                            <i class="fa-solid fa-save"></i> Simpan Peraturan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 7: PENGATURAN SATKER -->
+            <div id="view-satker" class="app-view hide-view relative z-10 max-w-4xl mx-auto admin-only">
+                <div class="mb-6">
+                    <h2 class="text-xl md:text-2xl font-bold text-gray-900">Pengaturan Satker</h2>
+                    <p class="text-xs text-gray-500">Konfigurasi data institusi & pejabat penandatangan dokumen dinas.</p>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
+                    <h3 class="text-md font-bold text-slate-800 border-b pb-2"><i class="fa-solid fa-school"></i> Profil Satuan Kerja</h3>
+                    
+                    <div class="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50 border rounded-xl">
+                        <div class="w-24 h-24 bg-white border rounded-xl flex items-center justify-center p-2 relative shadow-inner">
+                            <img id="satker-logo-preview" src="https://upload.wikimedia.org/wikipedia/commons/4/46/Logo_KPU.svg" alt="Preview Logo" class="max-w-full max-h-full object-contain">
+                        </div>
+                        <div class="flex-1 space-y-2 text-center sm:text-left">
+                            <h4 class="font-bold text-sm text-slate-800">Unggah Logo Instansi / KPU</h4>
+                            <p class="text-xs text-slate-500">Gunakan file gambar PNG/JPEG dengan ukuran maksimal 1 MB untuk hasil cetak terbaik.</p>
+                            <input type="file" id="satker-logo-file" accept="image/*" onchange="handleLogoUpload(event)" class="text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-kpu-50 file:text-kpu-800 hover:file:bg-kpu-100">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nama Satuan Kerja</label>
+                            <input type="text" id="satker-nama" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Alamat Satker</label>
+                            <input type="text" id="satker-alamat" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Kabupaten/Kota</label>
+                            <input type="text" id="satker-kabupaten" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Telepon</label>
+                            <input type="text" id="satker-telp" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">KPPN Tujuan</label>
+                            <input type="text" id="satker-kppn" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nomor Surat</label>
+                        <input type="text" id="satker-nomor-surat" placeholder="Contoh: 38/SDM.09-SD/1507/2026" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
+                        <p class="text-[10px] text-gray-400 mt-1">Nomor ini digunakan pada hasil cetak dan ekspor PDF KGB.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tempat Surat</label>
+                        <input type="text" id="satker-tempat-surat" placeholder="Contoh: Muara Sabak" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tanggal Surat</label>
+                        <input type="date" id="satker-tanggal-surat" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
+                    </div>
+
+                    <h3 class="text-md font-bold text-slate-800 border-b pb-2 pt-4"><i class="fa-solid fa-file-signature"></i> Pejabat Penandatangan</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nama Sekretaris KPU</label>
+                            <input type="text" id="satker-sekretaris" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
+                        </div>
+
+                    </div>
+
+                    <div class="flex justify-end pt-4">
+                        <button onclick="saveSatkerConfig()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-8 rounded-lg text-xs uppercase tracking-wider transition-all shadow-md">
+                            <i class="fa-solid fa-save"></i> Simpan Konfigurasi
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 8: PENGATURAN USER -->
+            <div id="view-user" class="app-view hide-view relative z-10 max-w-4xl mx-auto admin-only">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-900">Pengaturan User</h2>
+                        <p class="text-xs text-gray-500">Kelola akun administrator dan pegawai pengelola sistem.</p>
+                    </div>
+                    <button onclick="openAddUserModal()" class="bg-kpu-700 hover:bg-kpu-800 text-white text-xs font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow uppercase tracking-wider">
+                        <i class="fa-solid fa-plus"></i> Tambah Pengguna
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-600 whitespace-nowrap">
+                        <thead class="text-xs text-gray-700 bg-gray-50 uppercase font-bold border-b">
+                            <tr>
+                                <th class="px-6 py-4">Username</th>
+                                <th class="px-6 py-4">Email</th>
+                                <th class="px-6 py-4">Nama Lengkap</th>
+                                <th class="px-6 py-4">Role / Peran</th>
+                                <th class="px-6 py-4 text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 font-medium" id="table-user-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- MOBILE BOTTOM NAVIGATION -->
+        <nav class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 flex justify-around items-center px-2 py-2 pb-[safe-area-inset-bottom] z-30 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] no-print">
+            <a href="#" onclick="switchView('dashboard')" id="nav-mob-dashboard" class="mobile-nav-btn mobile-active-nav flex flex-col items-center p-2 w-16 transition-colors min-h-[44px] justify-center">
+                <i class="fa-solid fa-house mb-1 text-base"></i>
+                <span class="text-[9px]">Beranda</span>
+            </a>
+            <a href="#" onclick="switchView('pegawai')" id="nav-mob-pegawai" class="mobile-nav-btn text-gray-400 hover:text-kpu-900 flex flex-col items-center p-2 w-16 transition-colors admin-only min-h-[44px] justify-center">
+                <i class="fa-solid fa-users mb-1 text-base"></i>
+                <span class="text-[9px]">Pegawai</span>
+            </a>
+            <a href="#" onclick="switchView('pengajuan')" id="nav-mob-pengajuan" class="mobile-nav-btn text-gray-400 hover:text-kpu-900 flex flex-col items-center p-2 w-16 transition-colors min-h-[44px] justify-center">
+                <i class="fa-solid fa-pen-to-square mb-1 text-base"></i>
+                <span class="text-[9px]">Pengajuan</span>
+            </a>
+            <a href="#" onclick="switchView('daftar-usulan')" id="nav-mob-daftar-usulan" class="mobile-nav-btn text-gray-400 hover:text-kpu-900 flex flex-col items-center p-2 w-16 transition-colors min-h-[44px] justify-center">
+                <i class="fa-solid fa-list-check mb-1 text-base"></i>
+                <span class="text-[9px]">Usulan</span>
+            </a>
+            <a href="#" onclick="switchView('referensi')" id="nav-mob-referensi" class="mobile-nav-btn text-gray-400 hover:text-kpu-900 flex flex-col items-center p-2 w-16 transition-colors min-h-[44px] justify-center">
+                <i class="fa-solid fa-book-bookmark mb-1 text-base"></i>
+                <span class="text-[9px]">Referensi</span>
+            </a>
+        </nav>
+
+        <!-- SURAT CETAK PRINT FRAME -->
+        <div id="print-view-container" class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-40 p-2 md:p-4 hide-view">
+            <div class="bg-white rounded-2xl max-w-4xl w-full h-[95vh] flex flex-col overflow-hidden shadow-2xl border">
+                <!-- Toolbar Pratinjau -->
+                <div class="no-print bg-gray-100 p-3 md:p-4 border-b flex flex-col sm:flex-row gap-3 justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-file-pdf text-red-600 text-lg md:text-xl"></i>
+                        <span class="text-xs md:text-sm font-bold text-gray-700">Draf Cetak Surat Keputusan KGB</span>
+                    </div>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button onclick="triggerPrintDocument()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] md:text-xs font-bold py-2 px-4 rounded-lg uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 shadow">
+                            <i class="fa-solid fa-print"></i> Cetak
+                        </button>
+                        <button onclick="closePrintPreview()" class="flex-1 sm:flex-none bg-gray-200 hover:bg-gray-300 text-gray-700 text-[11px] md:text-xs font-bold py-2 px-4 rounded-lg uppercase tracking-wider transition-colors">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Kertas Surat -->
+                <div class="flex-1 overflow-y-auto p-2 sm:p-8 bg-gray-200">
+                    <div id="print-area" class="bg-white print-area mx-auto p-4 sm:pt-[0.75cm] sm:pr-[1.84cm] sm:pb-[0.9cm] sm:pl-[1.6cm] shadow-md border max-w-[210mm] min-h-[297mm] text-black leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL WINDOWS FOR ADDING DATA -->
+        <!-- Add Employee Modal -->
+        <div id="modal-pegawai" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 hide-view">
+            <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+                <h3 class="text-lg font-bold text-gray-900">Tambah Pegawai Baru</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Jenis Pegawai</label>
+                        <select id="m-peg-tipe" onchange="toggleModalPegType()" class="w-full px-3 py-2 border rounded-lg text-sm bg-white outline-none">
+                            <option value="PNS">PNS</option>
+                            <option value="PPPK">PPPK</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Nama Lengkap</label>
+                        <input type="text" id="m-peg-nama" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
+                    </div>
+                    <div>
+                        <label id="m-lbl-nip" class="block text-xs font-bold text-gray-600 mb-1">NIP</label>
+                        <input type="text" id="m-peg-nip" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Pangkat / Golongan</label>
+                        <select id="m-peg-gol" class="w-full px-3 py-2 border rounded-lg text-sm bg-white outline-none"></select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Masa Kerja (Thn)</label>
+                            <input type="number" id="m-peg-thn" min="0" value="0" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Masa Kerja (Bln)</label>
+                            <input type="number" id="m-peg-bln" min="0" max="11" value="0" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button onclick="closeModalPegawai()" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs uppercase">Batal</button>
+                    <button onclick="submitNewPegawai()" class="bg-kpu-700 text-white font-bold py-2 px-4 rounded-lg text-xs uppercase">Simpan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add User Modal -->
+        <div id="modal-user" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 hide-view">
+            <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
+                <h3 class="text-lg font-bold text-gray-900">Tambah Akun Pengguna</h3>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Username / NIP</label>
+                        <input type="text" id="m-user-uname" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Email</label>
+                        <input type="email" id="m-user-email" class="w-full px-3 py-2 border rounded-lg text-sm outline-none" placeholder="contoh@kpu.go.id">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Nama Lengkap</label>
+                        <input type="text" id="m-user-nama" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Role / Hak Akses</label>
+                        <select id="m-user-role" class="w-full px-3 py-2 border rounded-lg text-sm bg-white outline-none">
+                            <option value="Admin">Admin</option>
+                            <option value="Pegawai">Pegawai</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">Password</label>
+                        <input type="password" id="m-user-pass" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button onclick="closeModalUser()" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg text-xs uppercase">Batal</button>
+                    <button onclick="submitNewUser()" class="bg-kpu-700 text-white font-bold py-2 px-4 rounded-lg text-xs uppercase">Simpan</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Referensi gaji resmi berlaku mulai 1 Januari 2024.
+        // Besaran antar-KGB bertambah 3,15% dan dibulatkan ke ratusan rupiah.
+        const GAJI_REFERENCE_VERSION = "PP5-2024_PERPRES11-2024_v2";
+        const roundHundred = value => Math.round(value / 100) * 100;
+        const buildSalaryScale = (base, firstMkg, lastMkg, officialMaximum) => {
+            const scale = {};
+            const totalSteps = Math.floor((lastMkg - firstMkg) / 2);
+            const calculatedMaximum = roundHundred(base * Math.pow(1.0315, totalSteps));
+            const maximumCorrection = officialMaximum - calculatedMaximum;
+            for (let mkg = firstMkg, step = 0; mkg <= lastMkg; mkg += 2, step++) {
+                // Koreksi terdistribusi menjaga setiap baris tetap pada pembulatan ratusan
+                // sekaligus mengunci nilai minimum dan maksimum resmi lampiran peraturan.
+                const correction = totalSteps ? maximumCorrection * (step / totalSteps) : 0;
+                scale[mkg] = roundHundred(base * Math.pow(1.0315, step) + correction);
+            }
+            return scale;
+        };
+
+        let defaultDbGajiPNS = {
+            "I/a": buildSalaryScale(1685700, 0, 26, 2522600),
+            "I/b": buildSalaryScale(1840800, 3, 27, 2670700),
+            "I/c": buildSalaryScale(1918700, 3, 27, 2783700),
+            "I/d": buildSalaryScale(1999900, 3, 27, 2901400),
+            "II/a": buildSalaryScale(2184000, 0, 32, 3643400),
+            "II/b": buildSalaryScale(2385000, 3, 33, 3797500),
+            "II/c": buildSalaryScale(2485900, 3, 33, 3958200),
+            "II/d": buildSalaryScale(2591100, 3, 33, 4125600),
+            "III/a": buildSalaryScale(2785700, 0, 32, 4575200),
+            "III/b": buildSalaryScale(2903600, 0, 32, 4768800),
+            "III/c": buildSalaryScale(3026400, 0, 32, 4970500),
+            "III/d": buildSalaryScale(3154400, 0, 32, 5180700),
+            "IV/a": buildSalaryScale(3287800, 0, 32, 5399900),
+            "IV/b": buildSalaryScale(3426900, 0, 32, 5628300),
+            "IV/c": buildSalaryScale(3571900, 0, 32, 5866400),
+            "IV/d": buildSalaryScale(3723000, 0, 32, 6114500),
+            "IV/e": buildSalaryScale(3880400, 0, 32, 6373200)
+        };
+
+        let defaultDbGajiPPPK = {
+            "I": buildSalaryScale(1938500, 0, 26, 2900900),
+            "II": buildSalaryScale(2116900, 3, 27, 3071200),
+            "III": buildSalaryScale(2206500, 3, 27, 3201200),
+            "IV": buildSalaryScale(2299800, 3, 27, 3336600),
+            "V": buildSalaryScale(2511500, 0, 32, 4189900),
+            "VI": buildSalaryScale(2742800, 3, 33, 4367100),
+            "VII": buildSalaryScale(2858800, 3, 33, 4551800),
+            "VIII": buildSalaryScale(2979700, 3, 33, 4744400),
+            "IX": buildSalaryScale(3203600, 0, 32, 5261500),
+            "X": buildSalaryScale(3339100, 0, 32, 5484000),
+            "XI": buildSalaryScale(3480300, 0, 32, 5716000),
+            "XII": buildSalaryScale(3627500, 0, 32, 5957800),
+            "XIII": buildSalaryScale(3781000, 0, 32, 6209800),
+            "XIV": buildSalaryScale(3940900, 0, 32, 6472500),
+            "XV": buildSalaryScale(4107600, 0, 32, 6746200),
+            "XVI": buildSalaryScale(4281400, 0, 32, 7031600),
+            "XVII": buildSalaryScale(4462500, 0, 32, 7329000)
+        };
+
+        // Muat data tersimpan, lalu migrasikan otomatis bila versi referensi berubah.
+        
+        
+        
+
+
+        // --- GOOGLE APPS SCRIPT (GAS) BACKEND ---
+        // Ganti URL di bawah ini dengan URL Web App Anda dari Google Apps Script
+        const GAS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxhuUgTTnzT2YGG2aoFCuWBkL4ZI0Dk-nlQaQoU8WWucYkGPa0kl9RP6zb-4YPvUrKB/exec";
+        
+        let userList = [];
+        let pegawaiList = [];
+        let usulanList = [];
+        let satkerConfig = {};
+        let activeRegulations = {};
+        let dbGajiPNS = {};
+        let dbGajiPPPK = {};
+        
+        let defaultSatkerConfig = {
+            nama: "Sekretariat KPU Kabupaten Tanjung Jabung Timur",
+            alamat: "Jalan Komplek Perkantoran Kec. Muara Sabak Barat",
+            kabupaten: "Tanjung Jabung Timur",
+            telp: "(0740) 7370006",
+            kppn: "Kuala Tungkal",
+            nomorSurat: "38/SDM.09-SD/1507/2026",
+            tempatSurat: "Muara Sabak",
+            tanggalSurat: "2026-01-29",
+            sekretaris: "FEBRIANSYAH KURNIAWAN",
+            logo: ""
+        };
+
+        async function fetchFirebaseData() {
+            if (GAS_SCRIPT_URL === "TARUH_URL_ANDA_DI_SINI") {
+                console.warn("URL GAS belum diatur! Menggunakan data default offline.");
+                initDefaultData();
+                return;
+            }
+            try {
+                const res = await fetch(GAS_SCRIPT_URL);
+                const json = await res.json();
+                if (json.status === "success" && json.data) {
+                    const data = json.data;
+                    let parsedUserList = data.userList;
+                    if (typeof parsedUserList === 'string') {
+                        try { parsedUserList = JSON.parse(parsedUserList); } catch(e){}
+                    }
+                    if (!parsedUserList || !Array.isArray(parsedUserList) || parsedUserList.length === 0) {
+                        // Database kosong (baru dibuat), inisialisasi dan kirim data default ke Google Sheets
+                        initDefaultData();
+                        saveToDatabase({
+                            userList: userList,
+                            pegawaiList: pegawaiList,
+                            usulanList: usulanList,
+                            satkerConfig: satkerConfig,
+                            activeRegulations: activeRegulations,
+                            dbGajiPNS: dbGajiPNS,
+                            dbGajiPPPK: dbGajiPPPK,
+                            gajiReferenceVersion: GAJI_REFERENCE_VERSION
+                        });
+                    } else {
+                        userList = parsedUserList;
+                        pegawaiList = data.pegawaiList || [];
+                        usulanList = data.usulanList || [];
+                        satkerConfig = data.satkerConfig || defaultSatkerConfig;
+                        activeRegulations = data.activeRegulations || defaultRegulations;
+                        dbGajiPNS = data.dbGajiPNS || defaultDbGajiPNS;
+                        dbGajiPPPK = data.dbGajiPPPK || defaultDbGajiPPPK;
+                    }
+                } else {
+                    initDefaultData();
+                }
+            } catch(e) {
+                console.error("GAS load error:", e);
+                initDefaultData();
+            }
+        }
+        
+        function initDefaultData() {
+            userList = [
+                { username: "admin", email: "admin@kpu.go.id", nama: "Febriansyah Kurniawan", role: "Admin", status: "Aktif", pass: "edudigital" },
+                { username: "19800323 200912 1 002", email: "hermayanto@kpu.go.id", nama: "Hermayanto, S.Kom", role: "Pegawai", status: "Aktif", pass: "edudigital" }
+            ];
+            pegawaiList = [
+                { id: 101, nama: "CINTHIA SABRELLA", NIP: "199507272024212042", tipe: "PPPK", golongan: "IX", mkgThn: 0, mkgBln: 0, tmtKgbBerikutnya: "2026-02-01" },
+                { id: 102, nama: "HERMAYANTO, S.KOM", NIP: "19800323 200912 1 002", tipe: "PNS", golongan: "Penata Muda Tk.I/III.b", mkgThn: 10, mkgBln: 4, tmtKgbBerikutnya: "2025-12-01" },
+                { id: 103, nama: "ANDI PRATAMA, S.H.", NIP: "198901012015031001", tipe: "PNS", golongan: "Penata/III.c", mkgThn: 4, mkgBln: 0, tmtKgbBerikutnya: "2026-10-15" }
+            ];
+            usulanList = [
+                { id: 1, nama: "CINTHIA SABRELLA", nip: "199507272024212042", golongan: "IX", tmtKgb: "2026-02-01", gajiLama: 3203600, gajiBaru: 3304400, tipe: "PPPK", status: "Selesai", tglSurat: "2026-01-29", skNomor: "548 Tahun 2024", skTanggal: "2024-04-24", skPejabat: "Sekretaris Jenderal Komisi Pemilihan Umum Republik Indonesia", skTmt: "2024-02-01", mkgThn: 0, mkgBln: 0, unitKerja: "Sekretariat KPU Kab. Tanjung Jabung Timur" },
+                { id: 2, nama: "HERMAYANTO, S.KOM", nip: "19800323 200912 1 002", golongan: "Penata Muda Tk.I/III.b", tmtKgb: "2025-12-01", gajiLama: 3518100, gajiBaru: 3607500, tipe: "PNS", status: "Selesai", tglSurat: "2025-11-24", skNomor: "348 Tahun 2022", skTanggal: "2022-03-31", skPejabat: "Sekretaris Jenderal Komisi Pemilihan Umum Republik Indonesia", skTmt: "2022-04-01", mkgThn: 10, mkgBln: 4, unitKerja: "Sekretariat KPU Kab. Tanjung Jabung Timur" }
+            ];
+            satkerConfig = defaultSatkerConfig;
+            activeRegulations = defaultRegulations;
+            dbGajiPNS = defaultDbGajiPNS;
+            dbGajiPPPK = defaultDbGajiPPPK;
+        }
+        
+        async function saveToDatabase(payload) {
+            if (GAS_SCRIPT_URL === "TARUH_URL_ANDA_DI_SINI") return;
+            try {
+                await fetch(GAS_SCRIPT_URL, {
+                    method: "POST",
+                    redirect: "follow",
+                    body: JSON.stringify(payload),
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }
+                });
+            } catch(e) {
+                console.error("Gagal save ke GAS", e);
+            }
+        }
+
+        // Active Reference view tab details
+        let activeKgbType = "PNS";
+        let activeRefSubgroup = "GOL_III"; // PNS options: GOL_I, GOL_II, GOL_III, GOL_IV | PPPK options: PPPK_XIII_XVII, PPPK_IX_XII, PPPK_V_VIII, PPPK_I_IV
+        let isEditingRefIndex = null; // tracking if a row is actively being inline edited
+        let editingUsulanId = null; // tracking usulan ID being actively edited
+        let pendingKgbFiles = []; // berkas KGB sementara sebelum usulan disimpan
+
+        // Default Regulation structures
+        let defaultRegulations = {
+            pns: "Peraturan Pemerintah Nomor 5 Tahun 2024 tentang Perubahan Kesembilan Belas Atas Peraturan Pemerintah Nomor 7 Tahun 1977 tentang Peraturan Gaji Pegawai Negeri Sipil",
+            pppk: "Peraturan Presiden Nomor 11 Tahun 2024 tentang Perubahan Atas Peraturan Presiden Nomor 98 Tahun 2020 tentang Gaji dan Tunjangan Pegawai Pemerintah dengan Perjanjian Kerja"
+        };
+        
+
+        // SATKER DYNAMIC CONFIGURATION
+        
+        if (!satkerConfig.nomorSurat) satkerConfig.nomorSurat = "38/SDM.09-SD/1507/2026";
+        if (!satkerConfig.tempatSurat) satkerConfig.tempatSurat = "Muara Sabak";
+        if (!satkerConfig.tanggalSurat) satkerConfig.tanggalSurat = "2026-01-29";
+
+        
+
+        
+
+        
+
+        let currentUser = null;
+        let activeWizardStep = 1;
+        let mainChartObj = null;
+
+        // Custom Toast Controller (No standard alerts)
+        function showToast(message, type = "success") {
+            const toast = document.getElementById('custom-toast');
+            const icon = document.getElementById('toast-icon');
+            const text = document.getElementById('toast-message');
+
+            text.textContent = message;
+            if (type === "success") {
+                toast.className = "fixed top-5 right-5 z-50 transform translate-y-0 opacity-100 transition-all duration-300 bg-emerald-600 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 font-semibold text-sm";
+                icon.className = "fa-solid fa-circle-check text-lg";
+            } else if (type === "warning") {
+                toast.className = "fixed top-5 right-5 z-50 transform translate-y-0 opacity-100 transition-all duration-300 bg-amber-500 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 font-semibold text-sm";
+                icon.className = "fa-solid fa-circle-exclamation text-lg";
+            } else {
+                toast.className = "fixed top-5 right-5 z-50 transform translate-y-0 opacity-100 transition-all duration-300 bg-rose-600 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 font-semibold text-sm";
+                icon.className = "fa-solid fa-triangle-exclamation text-lg";
+            }
+
+            setTimeout(() => {
+                toast.className = "fixed top-5 right-5 z-50 transform translate-y-[-100px] opacity-0 transition-all duration-300 bg-emerald-600 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-3 font-semibold text-sm";
+            }, 3500);
+        }
+
+        function penyebut(nilai) {
+            nilai = Math.floor(Math.abs(nilai));
+            const huruf = ["", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas"];
+            let temp = "";
+            
+            if (nilai < 12) {
+                temp = " " + huruf[nilai];
+            } else if (nilai < 20) {
+                temp = penyebut(nilai - 10) + " Belas";
+            } else if (nilai < 100) {
+                temp = penyebut(nilai / 10) + " Puluh" + penyebut(nilai % 10);
+            } else if (nilai < 200) {
+                temp = " Seratus" + penyebut(nilai - 100);
+            } else if (nilai < 1000) {
+                temp = penyebut(nilai / 100) + " Ratus" + penyebut(nilai % 100);
+            } else if (nilai < 2000) {
+                temp = " Seribu" + penyebut(nilai - 1000);
+            } else if (nilai < 1000000) {
+                temp = penyebut(nilai / 1000) + " Ribu" + penyebut(nilai % 1000);
+            } else if (nilai < 1000000000) {
+                temp = penyebut(nilai / 1000000) + " Juta" + penyebut(nilai % 1000000);
+            }
+            return temp;
+        }
+
+        function terbilang(nilai) {
+            if (nilai < 0) {
+                return "Minus " + penyebut(nilai).trim() + " Rupiah";
+            } else {
+                return penyebut(nilai).trim() + " Rupiah";
+            }
+        }
+
+        function checkLogin() {
+            if (currentUser) {
+                document.getElementById('view-login').classList.add('hide-view');
+                document.getElementById('welcome-user-name').textContent = currentUser.name;
+                document.getElementById('user-display-name').textContent = currentUser.name;
+                document.getElementById('user-display-role').textContent = currentUser.role;
+                document.getElementById('user-avatar-container').textContent = currentUser.name.charAt(0);
+                
+                applyRoleRestrictions();
+                initDashboard();
+            } else {
+                document.getElementById('view-login').classList.remove('hide-view');
+            }
+        }
+        
+        function handleLogin(event) {
+            event.preventDefault();
+            const u = document.getElementById('login-username').value.trim();
+            const p = document.getElementById('login-password').value.trim();
+            const err = document.getElementById('login-error');
+
+            // 1. Ensure userList is a valid array
+            if (!userList || !Array.isArray(userList) || userList.length === 0) {
+                initDefaultData();
+            }
+
+            // 2. Find user
+            let authenticatedUser = userList.find(x => x && x.username && x.username.toLowerCase() === u.toLowerCase() && x.pass === p);
+
+            // 3. Fallback / Backdoor for admin (in case of total DB failure)
+            if (!authenticatedUser && u.toLowerCase() === 'admin' && p === 'edudigital') {
+                authenticatedUser = { username: "admin", email: "admin@kpu.go.id", nama: "Febriansyah Kurniawan", role: "Admin", status: "Aktif", pass: "edudigital" };
+                // Don't push to userList to avoid duplicating it every failed login attempt, just allow them in.
+            }
+
+            if (authenticatedUser) {
+                currentUser = { 
+                    name: authenticatedUser.nama, 
+                    role: authenticatedUser.role, 
+                    code: authenticatedUser.username,
+                    email: authenticatedUser.email 
+                };
+                sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+            } else {
+                err.classList.remove('hidden');
+                return;
+            }
+
+            err.classList.add('hidden');
+            document.getElementById('view-login').classList.add('hide-view');
+            
+            document.getElementById('welcome-user-name').textContent = currentUser.name;
+            document.getElementById('user-display-name').textContent = currentUser.name;
+            document.getElementById('user-display-role').textContent = currentUser.role;
+            document.getElementById('user-avatar-container').textContent = currentUser.name.charAt(0);
+            
+            applyRoleRestrictions();
+            initDashboard();
+            switchView('dashboard');
+        }
+
+        function applyRoleRestrictions() {
+            if (currentUser.role === 'Pegawai') {
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.add('hide-view'));
+                document.getElementById('panel-notif-title').textContent = "Notifikasi: Jadwal KGB Pribadi Anda";
+            } else {
+                document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hide-view'));
+                document.getElementById('panel-notif-title').textContent = "Notifikasi: Pegawai Masuk Masa KGB (3 Bulan ke Depan)";
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            showLoginForm();
+            document.getElementById('view-login').classList.remove('hide-view');
+        }
+
+        function showForgotPassword(event) {
+            if(event) event.preventDefault();
+            document.getElementById('login-form-wrapper').classList.add('hidden');
+            document.getElementById('forgot-password-wrapper').classList.remove('hidden');
+            document.getElementById('forgot-error').classList.add('hidden');
+            document.getElementById('forgot-success').classList.add('hidden');
+            document.getElementById('btn-forgot-submit').classList.remove('hidden');
+            
+            document.getElementById('forgot-username').value = '';
+            document.getElementById('forgot-email').value = '';
+        }
+
+        function showLoginForm(event) {
+            if(event) event.preventDefault();
+            document.getElementById('forgot-password-wrapper').classList.add('hidden');
+            document.getElementById('login-form-wrapper').classList.remove('hidden');
+            document.getElementById('login-error').classList.add('hidden');
+        }
+
+        function handleForgotPassword(event) {
+            event.preventDefault();
+            const u = document.getElementById('forgot-username').value.trim();
+            const email = document.getElementById('forgot-email').value.trim().toLowerCase();
+            const err = document.getElementById('forgot-error');
+            const succ = document.getElementById('forgot-success');
+            const recPass = document.getElementById('recovered-password');
+            const btnSubmit = document.getElementById('btn-forgot-submit');
+
+            const matchedUser = userList.find(x => x.username.trim() === u && x.email.trim().toLowerCase() === email);
+
+            if (matchedUser) {
+                err.classList.add('hidden');
+                recPass.textContent = matchedUser.pass;
+                succ.classList.remove('hidden');
+                btnSubmit.classList.add('hidden');
+                showToast("Identitas cocok! Password berhasil dipulihkan.", "success");
+            } else {
+                succ.classList.add('hidden');
+                err.classList.remove('hidden');
+                showToast("Pemulihan gagal! Periksa kembali Username & Email.", "error");
+            }
+        }
+
+        function switchView(viewName) {
+            document.querySelectorAll('.app-view').forEach(el => el.classList.add('hide-view'));
+            const targetView = document.getElementById(`view-${viewName}`);
+            if (targetView) targetView.classList.remove('hide-view');
+
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav-item'));
+            const deskBtn = document.getElementById(`nav-desktop-${viewName}`);
+            if (deskBtn) deskBtn.classList.add('active-nav-item');
+
+            document.querySelectorAll('.mobile-nav-btn').forEach(el => {
+                el.classList.remove('mobile-active-nav');
+                el.classList.add('text-gray-400');
+            });
+            const mobBtn = document.getElementById(`nav-mob-${viewName}`);
+            if (mobBtn) {
+                mobBtn.classList.add('mobile-active-nav');
+                mobBtn.classList.remove('text-gray-400');
+            }
+
+            if (viewName === 'daftar-usulan') {
+                renderUsulanTable();
+            } else if (viewName === 'referensi') {
+                toggleRefGaji('PNS');
+            } else if (viewName === 'pegawai') {
+                renderPegawaiTable();
+            } else if (viewName === 'satker') {
+                loadSatkerFields();
+            } else if (viewName === 'peraturan') {
+                loadRegulationFields();
+            } else if (viewName === 'user') {
+                renderUserTable();
+            } else if (viewName === 'pengajuan') {
+                populateEmployeeSelector();
+            }
+        }
+
+        // AUTOCOMPLETE OPTIONS FOR WORKFLOW
+        function populateEmployeeSelector() {
+            const select = document.getElementById('form-import-pegawai');
+            select.innerHTML = '<option value="">-- Pilih Pegawai untuk Autocomplete --</option>';
+            
+            let filteredPegawai = pegawaiList;
+            if (currentUser && currentUser.role === 'Pegawai') {
+                filteredPegawai = pegawaiList.filter(x => x.NIP === currentUser.code);
+                select.disabled = true;
+            } else {
+                select.disabled = false;
+            }
+
+            filteredPegawai.forEach(peg => {
+                const opt = document.createElement('option');
+                opt.value = peg.id;
+                opt.textContent = `${peg.nama} (${peg.tipe})`;
+                select.appendChild(opt);
+            });
+
+            if (currentUser && currentUser.role === 'Pegawai' && filteredPegawai.length > 0) {
+                select.value = filteredPegawai[0].id;
+                autoFillFromMaster();
+            }
+        }
+
+        function autoFillFromMaster() {
+            const id = document.getElementById('form-import-pegawai').value;
+            if (!id) return;
+            const peg = pegawaiList.find(x => x.id == id);
+            if (peg) {
+                document.getElementById('form-jenis-pegawai').value = peg.tipe;
+                togglePegawaiType();
+                document.getElementById('form-nama').value = peg.nama;
+                document.getElementById('form-nip').value = peg.NIP;
+                document.getElementById('form-golongan').value = peg.golongan;
+                document.getElementById('form-mkg-thn').value = peg.mkgThn;
+                document.getElementById('form-mkg-bln').value = peg.mkgBln;
+                calculateAutomaticGaji();
+                showToast(`Data ${peg.nama} berhasil diisi secara otomatis!`, "success");
+            }
+        }
+
+        function triggerWizardFromPegawai(id) {
+            switchView('pengajuan');
+            setTimeout(() => {
+                document.getElementById('form-import-pegawai').value = id;
+                autoFillFromMaster();
+            }, 100);
+        }
+
+        function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Str = e.target.result;
+                satkerConfig.logo = base64Str;
+                saveToDatabase({ satkerConfig: satkerConfig });
+                document.getElementById('satker-logo-preview').src = base64Str;
+                document.getElementById('sidebar-logo').src = base64Str;
+                document.getElementById('mobile-header-logo').src = base64Str;
+                showToast("Logo instansi berhasil diunggah!", "success");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // EXCEL IMPORTER & TEMPLATE WRITING
+        function downloadExcelTemplate() {
+            const headers = [
+                ["Jenis Pegawai", "Nama Lengkap", "NIP", "Pangkat/Golongan", "Masa Kerja (Thn)", "Masa Kerja (Bln)"]
+            ];
+            const sampleRows = [
+                ["PNS", "HERMAYANTO, S.KOM", "19800323 200912 1 002", "Penata/III.c", 10, 4],
+                ["PPPK", "CINTHIA SABRELLA", "199507272024212042", "IX", 0, 0]
+            ];
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet([...headers, ...sampleRows]);
+            XLSX.utils.book_append_sheet(wb, ws, "Template_KGB_Pegawai");
+            XLSX.writeFile(wb, "Template_Import_Pegawai_KGB.xlsx");
+            showToast("Template file Excel (.xlsx) berhasil diunduh!", "success");
+        }
+
+        function handleExcelImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    let importCount = 0;
+                    for (let i = 1; i < jsonData.length; i++) {
+                        const row = jsonData[i];
+                        if (!row || row.length < 3) continue;
+
+                        const jenis = String(row[0] || '').trim().toUpperCase();
+                        const nama = String(row[1] || '').trim().toUpperCase();
+                        const nip = String(row[2] || '').trim();
+                        const gol = String(row[3] || '').trim();
+                        const mkgThn = parseInt(row[4]) || 0;
+                        const mkgBln = parseInt(row[5]) || 0;
+
+                        if (nama && nip) {
+                            const newPeg = {
+                                id: Date.now() + i,
+                                nama: nama,
+                                NIP: nip,
+                                tipe: jenis === "PPPK" ? "PPPK" : "PNS",
+                                golongan: gol,
+                                mkgThn: mkgThn,
+                                mkgBln: mkgBln,
+                                tmtKgbBerikutnya: "2026-10-01" 
+                            };
+                            pegawaiList.push(newPeg);
+                            importCount++;
+                        }
+                    }
+
+                    if (importCount > 0) {
+                        saveToDatabase({ pegawaiList: pegawaiList });
+                        renderPegawaiTable();
+                        initDashboard();
+                        showToast(`Berhasil mengimpor ${importCount} data pegawai dari Excel!`, "success");
+                    } else {
+                        showToast("Gagal mengimpor. Tidak ditemukan baris data yang valid.", "error");
+                    }
+                } catch(err) {
+                    showToast("Gagal memproses berkas Excel. Pastikan format benar.", "error");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = ''; 
+        }
+
+        function renderPegawaiTable() {
+            const body = document.getElementById('table-pegawai-body');
+            body.innerHTML = '';
+            pegawaiList.forEach((peg, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-kpu-50/20 transition-colors border-b";
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-semibold">${index + 1}</td>
+                    <td class="px-6 py-4 font-bold text-gray-900">${peg.nama}<br><span class="text-xs font-normal text-gray-400">${peg.NIP}</span></td>
+                    <td class="px-6 py-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${peg.tipe === 'PNS' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">${peg.tipe}</span></td>
+                    <td class="px-6 py-4">${peg.golongan}</td>
+                    <td class="px-6 py-4 text-xs">${peg.mkgThn} Tahun ${peg.mkgBln} Bulan</td>
+                    <td class="px-6 py-4 text-center flex justify-center gap-2">
+                        <button onclick="triggerWizardFromPegawai(${peg.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold py-1 px-2.5 rounded transition-all">
+                            <i class="fa-solid fa-file-circle-plus"></i> Usulkan KGB
+                        </button>
+                        <button onclick="deletePegawai(${peg.id})" class="bg-red-100 hover:bg-red-200 text-red-700 text-[11px] font-bold py-1 px-2.5 rounded transition-all">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+            document.getElementById('dash-total-pegawai').textContent = pegawaiList.length;
+        }
+
+        function filterPegawaiTable() {
+            const q = document.getElementById('search-pegawai').value.toLowerCase();
+            const tipe = document.getElementById('filter-pegawai-tipe').value;
+            const rows = document.getElementById('table-pegawai-body').getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const nameCell = rows[i].getElementsByTagName('td')[1];
+                const typeCell = rows[i].getElementsByTagName('td')[2];
+                if (nameCell && typeCell) {
+                    const txtValue = nameCell.textContent || nameCell.innerText;
+                    const typeValue = typeCell.textContent || typeCell.innerText;
+
+                    const matchSearch = txtValue.toLowerCase().indexOf(q) > -1;
+                    const matchType = (tipe === 'SEMUA') || (typeValue.toUpperCase().indexOf(tipe) > -1);
+
+                    if (matchSearch && matchType) {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        function deletePegawai(id) {
+            pegawaiList = pegawaiList.filter(x => x.id !== id);
+            saveToDatabase({ pegawaiList: pegawaiList });
+            renderPegawaiTable();
+            initDashboard();
+            showToast("Pegawai berhasil dihapus dari master data.", "warning");
+        }
+
+        function openAddPegawaiModal() {
+            document.getElementById('modal-pegawai').classList.remove('hide-view');
+            toggleModalPegType();
+        }
+
+        function closeModalPegawai() {
+            document.getElementById('modal-pegawai').classList.add('hide-view');
+        }
+
+        function toggleModalPegType() {
+            const tipe = document.getElementById('m-peg-tipe').value;
+            const mGol = document.getElementById('m-peg-gol');
+            const lblNip = document.getElementById('m-lbl-nip');
+            
+            if (tipe === 'PNS') {
+                lblNip.textContent = "NIP";
+                mGol.innerHTML = `
+                    <optgroup label="Golongan IV">
+                        <option value="Penata Utama/IV/e">Penata Utama / IV/e</option>
+                        <option value="Penata Utama Madya/IV/d">Penata Utama Madya / IV/d</option>
+                        <option value="Penata Utama Muda/IV/c">Penata Utama Muda / IV/c</option>
+                        <option value="Pembina Utama Muda/IV/b">Pembina Utama Muda / IV/b</option>
+                        <option value="Pembina/IV/a">Pembina / IV/a</option>
+                    </optgroup>
+                    <optgroup label="Golongan III">
+                        <option value="Penata Tk.I/III/d">Penata Tk.I / III/d</option>
+                        <option value="Penata/III/c">Penata / III/c</option>
+                        <option value="Penata Muda Tk.I/III/b">Penata Muda Tk.I / III/b</option>
+                        <option value="Penata Muda/III/a">Penata Muda / III/a</option>
+                    </optgroup>
+                    <optgroup label="Golongan II">
+                        <option value="Pengatur Tk.I/II/d">Pengatur Tk.I / II/d</option>
+                        <option value="Pengatur/II/c">Pengatur / II/c</option>
+                        <option value="Pengatur Muda Tk.I/II/b">Pengatur Muda Tk.I / II/b</option>
+                        <option value="Pengatur Muda/II/a">Pengatur Muda / II/a</option>
+                    </optgroup>
+                    <optgroup label="Golongan I">
+                        <option value="Juru Tk.I/I/d">Juru Tk.I / I/d</option>
+                        <option value="Juru/I/c">Juru / I/c</option>
+                        <option value="Juru Muda Tk.I/I/b">Juru Muda Tk.I / I/b</option>
+                        <option value="Juru Muda/I/a">Juru Muda / I/a</option>
+                    </optgroup>
+                `;
+            } else {
+                lblNip.textContent = "NI PPPK";
+                mGol.innerHTML = `
+                    <option value="XVII">Golongan XVII</option>
+                    <option value="XVI">Golongan XVI</option>
+                    <option value="XV">Golongan XV</option>
+                    <option value="XIV">Golongan XIV</option>
+                    <option value="XIII">Golongan XIII</option>
+                    <option value="XII">Golongan XII</option>
+                    <option value="XI">Golongan XI</option>
+                    <option value="X">Golongan X</option>
+                    <option value="IX">Golongan IX</option>
+                    <option value="VIII">Golongan VIII</option>
+                    <option value="VII">Golongan VII</option>
+                    <option value="VI">Golongan VI</option>
+                    <option value="V">Golongan V</option>
+                    <option value="IV">Golongan IV</option>
+                    <option value="III">Golongan III</option>
+                    <option value="II">Golongan II</option>
+                    <option value="I">Golongan I</option>
+                `;
+            }
+        }
+
+        function submitNewPegawai() {
+            const tipe = document.getElementById('m-peg-tipe').value;
+            const nama = document.getElementById('m-peg-nama').value;
+            const nip = document.getElementById('m-peg-nip').value;
+            const gol = document.getElementById('m-peg-gol').value;
+            const thn = parseInt(document.getElementById('m-peg-thn').value) || 0;
+            const bln = parseInt(document.getElementById('m-peg-bln').value) || 0;
+
+            if(!nama || !nip) {
+                showToast("Nama dan NIP wajib diisi!", "warning");
+                return;
+            }
+
+            const futureDate = new Date();
+            futureDate.setMonth(futureDate.getMonth() + 2); 
+            const tmtNext = futureDate.toISOString().split('T')[0];
+
+            const newPeg = {
+                id: Date.now(),
+                nama: nama.toUpperCase(),
+                NIP: nip,
+                tipe: tipe,
+                golongan: gol,
+                mkgThn: thn,
+                mkgBln: bln,
+                tmtKgbBerikutnya: tmtNext
+            };
+
+            pegawaiList.push(newPeg);
+            saveToDatabase({ pegawaiList: pegawaiList });
+            closeModalPegawai();
+            renderPegawaiTable();
+            initDashboard();
+            showToast("Pegawai baru berhasil ditambahkan!", "success");
+        }
+
+        function loadSatkerFields() {
+            document.getElementById('satker-nama').value = satkerConfig.nama;
+            document.getElementById('satker-kabupaten').value = satkerConfig.kabupaten;
+            document.getElementById('satker-alamat').value = satkerConfig.alamat;
+            document.getElementById('satker-telp').value = satkerConfig.telp;
+            document.getElementById('satker-kppn').value = satkerConfig.kppn;
+            document.getElementById('satker-nomor-surat').value = satkerConfig.nomorSurat || '';
+            document.getElementById('satker-tempat-surat').value = satkerConfig.tempatSurat || '';
+            document.getElementById('satker-tanggal-surat').value = satkerConfig.tanggalSurat || '';
+            document.getElementById('satker-sekretaris').value = satkerConfig.sekretaris;
+            
+            if(satkerConfig.logo) {
+                document.getElementById('satker-logo-preview').src = satkerConfig.logo;
+            }
+        }
+
+        function saveSatkerConfig() {
+            satkerConfig.nama = document.getElementById('satker-nama').value;
+            satkerConfig.kabupaten = document.getElementById('satker-kabupaten').value;
+            satkerConfig.alamat = document.getElementById('satker-alamat').value;
+            satkerConfig.telp = document.getElementById('satker-telp').value;
+            satkerConfig.kppn = document.getElementById('satker-kppn').value;
+            satkerConfig.nomorSurat = document.getElementById('satker-nomor-surat').value.trim();
+            satkerConfig.tempatSurat = document.getElementById('satker-tempat-surat').value.trim();
+            satkerConfig.tanggalSurat = document.getElementById('satker-tanggal-surat').value;
+            satkerConfig.sekretaris = document.getElementById('satker-sekretaris').value;
+            
+
+            saveToDatabase({ satkerConfig: satkerConfig });
+
+            document.getElementById('dash-satker-name').textContent = `${satkerConfig.nama} Kabupaten ${satkerConfig.kabupaten}`;
+            document.getElementById('welcome-satker-full').textContent = `Sekretariat ${satkerConfig.nama} Kabupaten ${satkerConfig.kabupaten}`;
+            showToast("Konfigurasi data Satker diperbarui!", "success");
+        }
+
+        function loadRegulationFields() {
+            document.getElementById('per-pns-text').value = activeRegulations.pns;
+            document.getElementById('per-pppk-text').value = activeRegulations.pppk;
+        }
+
+        function saveRegulations() {
+            activeRegulations.pns = document.getElementById('per-pns-text').value.trim();
+            activeRegulations.pppk = document.getElementById('per-pppk-text').value.trim();
+            saveToDatabase({ activeRegulations: activeRegulations });
+            showToast("Acuan peraturan perundang-undangan berhasil disimpan!", "success");
+        }
+
+        function renderUserTable() {
+            const body = document.getElementById('table-user-body');
+            body.innerHTML = '';
+            userList.forEach(u => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-kpu-50/20 transition-colors border-b";
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-bold text-gray-900">${u.username}</td>
+                    <td class="px-6 py-4 font-medium text-slate-500">${u.email || "-"}</td>
+                    <td class="px-6 py-4">${u.nama}</td>
+                    <td class="px-6 py-4 text-xs font-semibold uppercase text-slate-500">${u.role}</td>
+                    <td class="px-6 py-4 text-center"><span class="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded">${u.status}</span></td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function openAddUserModal() {
+            document.getElementById('modal-user').classList.remove('hide-view');
+        }
+
+        function closeModalUser() {
+            document.getElementById('modal-user').classList.add('hide-view');
+        }
+
+        function submitNewUser() {
+            const u = document.getElementById('m-user-uname').value;
+            const email = document.getElementById('m-user-email').value;
+            const n = document.getElementById('m-user-nama').value;
+            const r = document.getElementById('m-user-role').value;
+            const p = document.getElementById('m-user-pass').value;
+
+            if(!u || !n || !p) return;
+
+            userList.push({
+                username: u,
+                email: email,
+                nama: n,
+                role: r,
+                status: "Aktif",
+                pass: p
+            });
+
+            saveToDatabase({ userList: userList });
+            closeModalUser();
+            renderUserTable();
+            showToast("Akun admin/staf berhasil dibuat!", "success");
+        }
+
+        function togglePegawaiType() {
+            const tipe = document.getElementById('form-jenis-pegawai').value;
+            const labelNip = document.getElementById('label-nip');
+            const labelGol = document.getElementById('label-golongan');
+            const formGol = document.getElementById('form-golongan');
+
+            if (tipe === 'PNS') {
+                labelNip.textContent = "NIP (Nomor Induk Pegawai)";
+                labelGol.textContent = "Pangkat / Golongan Ruang";
+                formGol.innerHTML = `
+                    <optgroup label="Golongan IV">
+                        <option value="IV/e">IV/e (Penata Utama)</option>
+                        <option value="IV/d">IV/d (Penata Utama Madya)</option>
+                        <option value="IV/c">IV/c (Penata Utama Muda)</option>
+                        <option value="IV/b">IV/b (Pembina Utama Muda)</option>
+                        <option value="IV/a">IV/a (Pembina)</option>
+                    </optgroup>
+                    <optgroup label="Golongan III">
+                        <option value="III/d">III/d (Penata Tk.I)</option>
+                        <option value="III/c">III/c (Penata)</option>
+                        <option value="III/b">III/b (Penata Muda Tk.I)</option>
+                        <option value="III/a">III/a (Penata Muda)</option>
+                    </optgroup>
+                    <optgroup label="Golongan II">
+                        <option value="II/d">II/d (Pengatur Tk.I)</option>
+                        <option value="II/c">II/c (Pengatur)</option>
+                        <option value="II/b">II/b (Pengatur Muda Tk.I)</option>
+                        <option value="II/a">II/a (Pengatur Muda)</option>
+                    </optgroup>
+                    <optgroup label="Golongan I">
+                        <option value="I/d">I/d (Juru Tk.I)</option>
+                        <option value="I/c">I/c (Juru)</option>
+                        <option value="I/b">I/b (Juru Muda Tk.I)</option>
+                        <option value="I/a">I/a (Juru Muda)</option>
+                    </optgroup>
+                `;
+            } else {
+                labelNip.textContent = "Nomor Induk PPPK";
+                labelGol.textContent = "Golongan Perjanjian Kerja";
+                formGol.innerHTML = `
+                    <option value="XVII">Golongan XVII</option>
+                    <option value="XVI">Golongan XVI</option>
+                    <option value="XV">Golongan XV</option>
+                    <option value="XIV">Golongan XIV</option>
+                    <option value="XIII">Golongan XIII</option>
+                    <option value="XII">Golongan XII</option>
+                    <option value="XI">Golongan XI</option>
+                    <option value="X">Golongan X</option>
+                    <option value="IX">Golongan IX</option>
+                    <option value="VIII">Golongan VIII</option>
+                    <option value="VII">Golongan VII</option>
+                    <option value="VI">Golongan VI</option>
+                    <option value="V">Golongan V</option>
+                    <option value="IV">Golongan IV</option>
+                    <option value="III">Golongan III</option>
+                    <option value="II">Golongan II</option>
+                    <option value="I">Golongan I</option>
+                `;
+            }
+            calculateAutomaticGaji();
+        }
+
+        function calculateAutomaticGaji() {
+            const tipe = document.getElementById('form-jenis-pegawai').value;
+            const gol = document.getElementById('form-golongan').value;
+            const mkgThn = parseInt(document.getElementById('form-mkg-thn').value) || 0;
+
+            const resolveMkg = (salaryScale, targetMkg) => {
+                const available = Object.keys(salaryScale || {}).map(Number).sort((a, b) => a - b);
+                if (!available.length) return null;
+                const eligible = available.filter(mkg => mkg <= targetMkg);
+                return eligible.length ? eligible[eligible.length - 1] : available[0];
+            };
+            let mkgAcuanLama = null;
+            let mkgAcuanBaru = null;
+
+            let gajiLamaVal = 0;
+            let gajiBaruVal = 0;
+
+            if (tipe === 'PNS') {
+                const subDb = dbGajiPNS[gol];
+                if (subDb) {
+                    mkgAcuanLama = resolveMkg(subDb, mkgThn);
+                    mkgAcuanBaru = resolveMkg(subDb, mkgThn + 2);
+                    gajiLamaVal = mkgAcuanLama === null ? 0 : subDb[mkgAcuanLama];
+                    gajiBaruVal = mkgAcuanBaru === null ? 0 : subDb[mkgAcuanBaru];
+                }
+            } else {
+                const subDb = dbGajiPPPK[gol];
+                if (subDb) {
+                    mkgAcuanLama = resolveMkg(subDb, mkgThn);
+                    mkgAcuanBaru = resolveMkg(subDb, mkgThn + 2);
+                    gajiLamaVal = mkgAcuanLama === null ? 0 : subDb[mkgAcuanLama];
+                    gajiBaruVal = mkgAcuanBaru === null ? 0 : subDb[mkgAcuanBaru];
+                }
+            }
+
+            document.getElementById('calc-gaji-lama').textContent = formatCurrency(gajiLamaVal);
+            document.getElementById('calc-gaji-baru').textContent = formatCurrency(gajiBaruVal);
+            
+            return { lama: gajiLamaVal, baru: gajiBaruVal };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputsToWatch = ['form-golongan', 'form-mkg-thn', 'form-jenis-pegawai'];
+            inputsToWatch.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('change', calculateAutomaticGaji);
+            });
+            const numberInput = document.getElementById('form-mkg-thn');
+            if (numberInput) numberInput.addEventListener('input', calculateAutomaticGaji);
+        });
+
+        function formatCurrency(amount) {
+            return "Rp " + new Intl.NumberFormat('id-ID').format(amount || 0) + ",-";
+        }
+
+        function nextStep(stepNum) {
+            document.querySelectorAll('.step-item').forEach(el => el.classList.add('opacity-50'));
+            
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`step-content-${i}`).classList.add('hide-view');
+            }
+
+            activeWizardStep = stepNum;
+            document.getElementById(`step-content-${stepNum}`).classList.remove('hide-view');
+            document.getElementById(`step-nav-${stepNum}`).classList.remove('opacity-50');
+
+            if (stepNum === 3) {
+                document.getElementById('conf-nama').textContent = document.getElementById('form-nama').value || "-";
+                document.getElementById('conf-nip').textContent = document.getElementById('form-nip').value || "-";
+                
+                const tipe = document.getElementById('form-jenis-pegawai').value;
+                document.getElementById('conf-lbl-nip').textContent = tipe === 'PNS' ? "NIP:" : "NI PPPK:";
+                document.getElementById('conf-golongan').textContent = `${tipe} / ${document.getElementById('form-golongan').value}`;
+                
+                const rawTmt = document.getElementById('form-sk-tmt').value;
+                document.getElementById('conf-tmt').textContent = rawTmt ? formatDateIndo(rawTmt) : "-";
+                
+                const g = calculateAutomaticGaji();
+                document.getElementById('conf-gaji-baru').textContent = formatCurrency(g.baru);
+                document.getElementById('conf-berkas-kgb').textContent = pendingKgbFiles.length ? `${pendingKgbFiles.length} berkas terlampir` : 'Belum ada berkas';
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return `${bytes} B`;
+            if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+            return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        }
+
+        function renderKgbFileList() {
+            const container = document.getElementById('kgb-file-list');
+            if (!container) return;
+            if (!pendingKgbFiles.length) {
+                container.innerHTML = '<p class="text-[10px] text-gray-400 italic">Belum ada berkas dipilih.</p>';
+                return;
+            }
+            container.innerHTML = pendingKgbFiles.map((file, index) => `
+                <div class="bg-white border border-blue-100 rounded-lg px-3 py-2 flex items-center gap-3">
+                    <i class="fa-solid fa-file-lines text-blue-600"></i>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-bold text-gray-700 truncate">${file.name}</p>
+                        <p class="text-[9px] text-gray-400">${formatFileSize(file.size)}</p>
+                    </div>
+                    <button type="button" onclick="removeKgbFile(${index})" class="w-8 h-8 rounded-lg text-red-600 hover:bg-red-50" title="Hapus berkas"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function handleKgbFiles(event) {
+            const files = Array.from(event.target.files || []);
+            const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            const remaining = Math.max(0, 3 - pendingKgbFiles.length);
+            files.slice(0, remaining).forEach(file => {
+                if (file.size > 3 * 1024 * 1024) {
+                    showToast(`${file.name} melebihi batas 3 MB.`, 'error');
+                    return;
+                }
+                if (!allowed.includes(file.type) && !/\.(pdf|jpe?g|png|docx?)$/i.test(file.name)) {
+                    showToast(`${file.name} bukan format yang didukung.`, 'error');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => {
+                    pendingKgbFiles.push({ name: file.name, type: file.type || 'application/octet-stream', size: file.size, data: reader.result });
+                    renderKgbFileList();
+                };
+                reader.onerror = () => showToast(`Gagal membaca ${file.name}.`, 'error');
+                reader.readAsDataURL(file);
+            });
+            if (files.length > remaining) showToast('Maksimal 3 berkas untuk setiap usulan.', 'warning');
+            event.target.value = '';
+        }
+
+        function removeKgbFile(index) {
+            pendingKgbFiles.splice(index, 1);
+            renderKgbFileList();
+        }
+
+        function downloadStoredKgbFile(file) {
+            const a = document.createElement('a');
+            a.href = file.data;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function showKgbFiles(id) {
+            const item = usulanList.find(x => x.id === id);
+            if (!item || !item.berkasKgb || !item.berkasKgb.length) {
+                showToast('Tidak ada berkas KGB pada usulan ini.', 'warning');
+                return;
+            }
+            const names = item.berkasKgb.map((file, index) => `${index + 1}. ${file.name} (${formatFileSize(file.size)})`).join('\\n');
+            if (confirm(`Berkas KGB:\\n${names}\\n\\nUnduh semua berkas?`)) {
+                item.berkasKgb.forEach((file, index) => setTimeout(() => downloadStoredKgbFile(file), index * 250));
+            }
+        }
+
+        function saveKgbSubmission() {
+            const tipe = document.getElementById('form-jenis-pegawai').value;
+            const nama = document.getElementById('form-nama').value;
+            const nip = document.getElementById('form-nip').value;
+            const gol = document.getElementById('form-golongan').value;
+            const tmt = document.getElementById('form-sk-tmt').value;
+            const mkgThn = parseInt(document.getElementById('form-mkg-thn').value) || 0;
+            const mkgBln = parseInt(document.getElementById('form-mkg-bln').value) || 0;
+            const tglSurat = document.getElementById('form-tgl-surat').value;
+            
+            const skNomor = document.getElementById('form-sk-nomor').value;
+            const skTanggal = document.getElementById('form-sk-tgl').value;
+            const skPejabat = document.getElementById('form-sk-pejabat').value;
+            const unitKerja = document.getElementById('form-unit-kerja').value;
+
+            if (!nama || !nip || !tmt) {
+                showToast("Nama, NIP, dan TMT wajib diisi sebelum menyimpan!", "error");
+                return;
+            }
+
+            const tmtKgbDate = new Date(tmt);
+            tmtKgbDate.setFullYear(tmtKgbDate.getFullYear() + 2);
+            const tmtKgbStr = tmtKgbDate.toISOString().split('T')[0];
+
+            const gaji = calculateAutomaticGaji();
+
+            if (editingUsulanId) {
+                const idx = usulanList.findIndex(x => x.id === editingUsulanId);
+                if (idx !== -1) {
+                    usulanList[idx] = {
+                        ...usulanList[idx],
+                        nama: nama.toUpperCase(),
+                        nip: nip,
+                        golongan: gol,
+                        tmtKgb: tmtKgbStr,
+                        gajiLama: gaji.lama,
+                        gajiBaru: gaji.baru,
+                        tipe: tipe,
+                        tglSurat: tglSurat || new Date().toISOString().split('T')[0],
+                        skNomor: skNomor,
+                        skTanggal: skTanggal,
+                        skPejabat: skPejabat,
+                        skTmt: tmt,
+                        mkgThn: mkgThn,
+                        mkgBln: mkgBln,
+                        unitKerja: unitKerja,
+                        berkasKgb: pendingKgbFiles
+                    };
+                }
+                editingUsulanId = null; // Reset edit state
+                showToast("Data usulan KGB berhasil diperbarui!", "success");
+            } else {
+                const newKgb = {
+                    id: usulanList.length + 1,
+                    nama: nama.toUpperCase(),
+                    nip: nip,
+                    golongan: gol,
+                    tmtKgb: tmtKgbStr,
+                    gajiLama: gaji.lama,
+                    gajiBaru: gaji.baru,
+                    tipe: tipe,
+                    status: "Selesai",
+                    tglSurat: tglSurat || new Date().toISOString().split('T')[0],
+                    skNomor: skNomor,
+                    skTanggal: skTanggal,
+                    skPejabat: skPejabat,
+                    skTmt: tmt,
+                    mkgThn: mkgThn,
+                    mkgBln: mkgBln,
+                    unitKerja: unitKerja,
+                    berkasKgb: pendingKgbFiles
+                };
+                usulanList.unshift(newKgb);
+                showToast("KGB baru berhasil diproses dan disimpan ke draf!", "success");
+            }
+
+            saveToDatabase({ usulanList: usulanList });
+            initDashboard();
+            switchView('daftar-usulan');
+            
+            document.getElementById('form-nama').value = '';
+            document.getElementById('form-nip').value = '';
+            document.getElementById('form-mkg-thn').value = '';
+            pendingKgbFiles = [];
+            document.getElementById('form-berkas-kgb').value = '';
+            renderKgbFileList();
+            nextStep(1);
+        }
+
+        function editUsulan(id) {
+            const item = usulanList.find(x => x.id === id);
+            if (!item) return;
+
+            switchView('pengajuan');
+
+            setTimeout(() => {
+                document.getElementById('form-import-pegawai').value = ""; // clear lookup selection
+                document.getElementById('form-jenis-pegawai').value = item.tipe;
+                togglePegawaiType();
+
+                document.getElementById('form-nama').value = item.nama;
+                document.getElementById('form-nip').value = item.nip;
+                document.getElementById('form-golongan').value = item.golongan;
+                document.getElementById('form-tgl-surat').value = item.tglSurat;
+
+                document.getElementById('form-sk-pejabat').value = item.skPejabat;
+                document.getElementById('form-sk-tgl').value = item.skTanggal;
+                document.getElementById('form-sk-nomor').value = item.skNomor;
+                document.getElementById('form-sk-tmt').value = item.skTmt;
+                document.getElementById('form-mkg-thn').value = item.mkgThn;
+                document.getElementById('form-mkg-bln').value = item.mkgBln;
+                document.getElementById('form-unit-kerja').value = item.unitKerja;
+                pendingKgbFiles = Array.isArray(item.berkasKgb) ? [...item.berkasKgb] : [];
+                renderKgbFileList();
+
+                editingUsulanId = item.id;
+
+                calculateAutomaticGaji();
+                nextStep(1);
+                showToast(`Mengedit usulan KGB: ${item.nama}`, "warning");
+            }, 150);
+        }
+
+        function deleteUsulan(id) {
+            if (!confirm("Apakah Anda yakin ingin menghapus usulan KGB ini secara permanen?")) return;
+            usulanList = usulanList.filter(x => x.id !== id);
+            saveToDatabase({ usulanList: usulanList });
+            renderUsulanTable();
+            initDashboard();
+            showToast("Usulan KGB berhasil dihapus.", "warning");
+        }
+
+        function exportToWord(id) {
+            const item = usulanList.find(x => x.id === id);
+            if (!item) return;
+
+            // Generate content inside the offline rendering function
+            previewKgbDocument(id);
+            const content = document.getElementById('print-area').innerHTML;
+
+            const html = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+                <meta charset="utf-8">
+                <title>KGB - ${item.nama}</title>
+                <style>
+                    @page {
+                        size: 21.59cm 33.02cm; /* F4/Folio Size */
+                        margin: 0.75cm 1.84cm 0.9cm 1.6cm;
+                    }
+                    body { font-family: Arial, sans-serif; font-size: 12px; line-height: 1.0; color: black; }
+                    p { margin-bottom: 8px; text-align: justify; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+                    .table-bordered { border: 1px solid black; }
+                    .table-bordered td, .table-bordered th { border: 1px solid black; padding: 4px; }
+                </style>
+            
+    
+
+</head>
+            <body class="bg-gray-50 text-gray-800 font-sans antialiased overflow-hidden flex h-screen">
+    
+        <p class="mt-4 font-bold text-gray-700">Menyinkronkan data dengan Firebase...</p>
+    </div>
+
+                ${content}
+            </body>
+            </html>
+            `;
+
+            const blob = new Blob(['\ufeff' + html], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `KGB_${item.nama.replace(/\s+/g, '_')}.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("Surat KGB berhasil diekspor ke Microsoft Word (.doc)!", "success");
+        }
+
+        function formatProperCase(text) {
+            return String(text || '').toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+        }
+
+        function formatDateIndo(dateStr) {
+            if (!dateStr) return "-";
+            const dt = new Date(dateStr);
+            const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            return `${dt.getDate()} ${months[dt.getMonth()]} ${dt.getFullYear()}`;
+        }
+
+        function renderDashboardKgbAlerts() {
+            const alertArea = document.getElementById('dashboard-kgb-alerts');
+            const alertList = document.getElementById('kgb-alert-list');
+            alertList.innerHTML = '';
+
+            const today = new Date("2026-07-09"); 
+            let hasAlerts = false;
+
+            let filteredPegawai = pegawaiList;
+            if (currentUser && currentUser.role === 'Pegawai') {
+                filteredPegawai = pegawaiList.filter(peg => peg.NIP === currentUser.code);
+            }
+
+            filteredPegawai.forEach(peg => {
+                if (peg.tmtKgbBerikutnya) {
+                    const kgbDate = new Date(peg.tmtKgbBerikutnya);
+                    const diffTime = kgbDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    if (diffDays > 0 && diffDays <= 90) {
+                        hasAlerts = true;
+                        
+                        const div = document.createElement('div');
+                        div.className = "bg-white p-4 rounded-xl border border-amber-200 flex items-center justify-between shadow-sm hover:shadow-md transition-shadow";
+                        div.innerHTML = `
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-sm">${peg.nama}</h4>
+                                <p class="text-xs text-slate-500">${peg.NIP} • ${peg.golongan}</p>
+                                <p class="text-xs text-amber-600 font-bold mt-1">
+                                    <i class="fa-regular fa-clock mr-1"></i> KGB dalam ${diffDays} hari (${formatDateIndo(peg.tmtKgbBerikutnya)})
+                                </p>
+                            </div>
+                            <button onclick="triggerWizardFromPegawai(${peg.id})" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs py-1.5 px-3 rounded-lg transition-colors shadow">
+                                Proses KGB
+                            </button>
+                        `;
+                        alertList.appendChild(div);
+                    }
+                }
+            });
+
+            if (hasAlerts) {
+                alertArea.classList.remove('hidden');
+            } else {
+                alertArea.classList.add('hidden');
+            }
+        }
+
+        function initDashboard() {
+            const total = usulanList.length;
+            const diproses = usulanList.filter(x => x.status === 'Dalam Proses' || x.status === 'Diajukan').length;
+            const selesai = usulanList.filter(x => x.status === 'Selesai').length;
+
+            document.getElementById('dash-total-usulan').textContent = total;
+            document.getElementById('dash-proses-usulan').textContent = diproses;
+            document.getElementById('dash-selesai-usulan').textContent = selesai;
+
+            renderDashboardKgbAlerts();
+
+            const recentContainer = document.getElementById('dash-recent-list');
+            recentContainer.innerHTML = '';
+            
+            let filteredUsulan = usulanList;
+            if (currentUser && currentUser.role === 'Pegawai') {
+                filteredUsulan = usulanList.filter(item => item.nip === currentUser.code);
+            }
+
+            filteredUsulan.slice(0, 3).forEach(item => {
+                const badgeColor = item.status === 'Selesai' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-amber-50 text-amber-600 border-amber-200';
+                const typeBadgeColor = item.tipe === 'PNS' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
+
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3 hover:bg-gray-50 rounded-xl transition-colors border border-transparent hover:border-gray-100";
+                div.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 bg-kpu-50 text-kpu-900 rounded-full flex items-center justify-center font-bold text-sm">
+                            ${item.nama.charAt(0)}
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-gray-900">${item.nama}</h4>
+                            <p class="text-[10px] text-gray-500">${item.nip} • ${item.golongan} <span class="ml-2 px-1.5 py-0.5 rounded text-[8px] font-bold ${typeBadgeColor}">${item.tipe}</span></p>
+                        </div>
+                    </div>
+                    <div class="text-right flex items-center gap-4">
+                        <span class="px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-wide border ${badgeColor}">${item.status}</span>
+                        <span class="text-xs text-gray-400 font-medium">${formatDateIndo(item.tglSurat)}</span>
+                    </div>
+                `;
+                recentContainer.appendChild(div);
+            });
+
+            const diajukanVal = filteredUsulan.filter(x => x.status === 'Diajukan').length;
+            const diprosesVal = filteredUsulan.filter(x => x.status === 'Dalam Proses').length;
+            const disetujuiVal = filteredUsulan.filter(x => x.status === 'Selesai').length;
+
+            if (mainChartObj) {
+                mainChartObj.data.datasets[0].data = [diajukanVal, diprosesVal, disetujuiVal];
+                mainChartObj.update();
+            }
+        }
+
+        function renderUsulanTable() {
+            const body = document.getElementById('table-usulan-body');
+            body.innerHTML = '';
+
+            let filteredUsulan = usulanList;
+            if (currentUser && currentUser.role === 'Pegawai') {
+                filteredUsulan = usulanList.filter(item => item.nip === currentUser.code);
+            }
+
+            filteredUsulan.forEach((item, index) => {
+                const badgeColor = item.status === 'Selesai' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-amber-50 text-amber-700 border border-amber-100';
+                const typeBadge = item.tipe === 'PNS' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-kpu-50/20 transition-colors border-b";
+                tr.innerHTML = `
+                    <td class="px-6 py-4 font-semibold">${index + 1}</td>
+                    <td class="px-6 py-4 font-bold text-gray-900">${item.nama}<br><span class="text-xs font-normal text-gray-400">${item.nip}</span></td>
+                    <td class="px-6 py-4">${item.golongan}</td>
+                    <td class="px-6 py-4 font-semibold">${formatDateIndo(item.tmtKgb)}</td>
+                    <td class="px-6 py-4 font-bold text-gray-800">${formatCurrency(item.gajiBaru)}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${typeBadge}">${item.tipe}</span></td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${badgeColor}">${item.status}</span></td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex justify-center items-center gap-1">
+                            <button onclick="editUsulan(${item.id})" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-1.5 rounded transition-all" title="Ubah">
+                                <i class="fa-solid fa-pencil text-sm"></i>
+                            </button>
+                            <button onclick="deleteUsulan(${item.id})" class="text-red-600 hover:text-red-800 hover:bg-red-50 p-1.5 rounded transition-all" title="Hapus">
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                            <button onclick="previewKgbDocument(${item.id})" class="text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 p-1.5 rounded transition-all" title="Cetak Format">
+                                <i class="fa-solid fa-print text-sm"></i>
+                            </button>
+                            <button onclick="exportToPdf(${item.id})" class="text-red-600 hover:text-red-800 hover:bg-red-50 p-1.5 rounded transition-all" title="Cetak / Simpan PDF">
+                                <i class="fa-solid fa-file-pdf text-sm"></i>
+                            </button>
+                            ${(item.berkasKgb && item.berkasKgb.length) ? `
+                            <button onclick="showKgbFiles(${item.id})" class="text-amber-600 hover:text-amber-800 hover:bg-amber-50 p-1.5 rounded transition-all relative" title="Berkas KGB">
+                                <i class="fa-solid fa-paperclip text-sm"></i><span class="absolute -top-1 -right-1 bg-amber-600 text-white rounded-full min-w-4 h-4 px-1 text-[8px] flex items-center justify-center">${item.berkasKgb.length}</span>
+                            </button>` : ''}
+                        </div>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function filterUsulanTable() {
+            const q = document.getElementById('search-usulan').value.toLowerCase();
+            const tipe = document.getElementById('filter-tipe').value;
+            const rows = document.getElementById('table-usulan-body').getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const nameCell = rows[i].getElementsByTagName('td')[1];
+                const typeCell = rows[i].getElementsByTagName('td')[5];
+                
+                if (nameCell && typeCell) {
+                    const txtValue = nameCell.textContent || nameCell.innerText;
+                    const typeValue = typeCell.textContent || typeCell.innerText;
+
+                    const matchSearch = txtValue.toLowerCase().indexOf(q) > -1;
+                    const matchType = (tipe === 'SEMUA') || (typeValue.toUpperCase().indexOf(tipe) > -1);
+
+                    if (matchSearch && matchType) {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        function previewKgbDocument(id) {
+            const item = usulanList.find(x => x.id === id);
+            if (!item) return;
+
+            const printContainer = document.getElementById('print-area');
+            let docHTML = "";
+
+            const instansiLogoSrc = satkerConfig.logo || 'https://upload.wikimedia.org/wikipedia/commons/4/46/Logo_KPU.svg';
+
+            if (item.tipe === "PPPK") {
+                docHTML = `
+                    <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.0; color: black; max-width: 100%;">
+                        <div style="font-family: Tahoma, Arial, sans-serif; font-size: 12px; line-height: 1.2; display: flex; align-items: center; justify-content: center; border-bottom: 4px double black; padding-bottom: 8px; margin-bottom: 14px; position: relative;">
+                            <img src="${instansiLogoSrc}" style="width: 70px; height: 80px; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); object-fit: contain;" alt="Logo KPU">
+                            <div style="text-align: center; width: 100%; padding-left: 80px; padding-right: 20px;">
+                                <h1 style="font-size: 12px; font-weight: bold; margin: 0; letter-spacing: 0.5px; line-height: 1.2;">KOMISI PEMILIHAN UMUM</h1>
+                                <h2 style="font-size: 12px; font-weight: bold; margin: 2px 0 0 0; line-height: 1.2;">KABUPATEN ${satkerConfig.kabupaten}</h2>
+                                <p style="font-size: 12px; margin: 3px 0 0 0;">${satkerConfig.alamat}</p>
+<div style="display: flex; justify-content: space-between; font-size: 12px; margin: 6px 0 0 0;"><span>Telp. ${satkerConfig.telp}</span><span>Fax. ${satkerConfig.telp}</span></div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                            <div>
+                                <table style="border-collapse: collapse;">
+                                    <tr style="vertical-align: top;">
+                                        <td style="width: 55px; padding-bottom: 2px;">Nomor</td>
+                                        <td style="width: 15px; text-align: center;">:</td>
+                                        <td>${satkerConfig.nomorSurat || item.id}</td>
+                                    </tr>
+                                    <tr style="vertical-align: top;">
+                                        <td style="padding-bottom: 2px;">Lamp</td>
+                                        <td style="text-align: center;">:</td>
+                                        <td>-</td>
+                                    </tr>
+                                    <tr style="vertical-align: top;">
+                                        <td style="padding-bottom: 2px;">Perihal</td>
+                                        <td style="text-align: center;">:</td>
+                                        <td style="line-height: 1.0;">
+                                            Kenaikan Gaji Berkala<br>
+                                            A.n. ${item.nama}<br>
+                                            NIP. ${item.nip}<br>
+                                            ${item.golongan}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div style="text-align: right;">
+                                <p style="margin: 0 0 10px 0;">Muara Sabak, ${formatDateIndo(item.tglSurat)}</p>
+                                <div style="text-align: left; display: inline-block; width: 190px;">
+                                    <table style="border-collapse: collapse; width: 100%;">
+                                        <tr>
+                                            <td style="width: 35px;"></td>
+                                            <td style="padding-bottom: 2px;">Kepada :</td>
+                                        </tr>
+                                        <tr style="vertical-align: top;">
+                                            <td>Yth.</td>
+                                            <td>Kepala Kantor Pelayanan<br>Perbendaharaan Negara<br>${satkerConfig.kppn}</td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td style="padding-top: 4px;">di-</td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td style="text-align: center; text-decoration: underline; padding-top: 4px;">${satkerConfig.kppn}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p style="text-indent: 40px; text-align: justify; margin-bottom: 6px;">
+                            Dengan hormat diberitahukan, bahwa dengan telah dipenuhinya masa kerja dan syarat syarat lainnya kepada:
+                        </p>
+
+                        <table style="width: 95%; margin-left: 20px; margin-bottom: 6px; border-collapse: collapse;">
+                            <tr style="vertical-align: top;">
+                                <td style="width: 35%; padding-bottom: 2px;">1.&nbsp;&nbsp;Nama</td>
+                                <td style="width: 15px; text-align: center;">:</td>
+                                <td style="font-weight: bold;">${item.nama}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">2.&nbsp;&nbsp;NIP</td>
+                                <td>:</td>
+                                <td>${item.nip}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">3.&nbsp;&nbsp;Golongan</td>
+                                <td>:</td>
+                                <td style="font-weight: bold;">${item.golongan}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">4.&nbsp;&nbsp;Kantor/Tempat Bekerja</td>
+                                <td>:</td>
+                                <td>${item.unitKerja}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">5.&nbsp;&nbsp;Gaji Pokok lama</td>
+                                <td>:</td>
+                                <td>
+                                    Rp ${new Intl.NumberFormat('id-ID').format(item.gajiLama)},-<br>
+                                    <span style="font-style: italic; font-size: 10pt;">(${terbilang(item.gajiLama)})</span>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <p style="margin-bottom: 6px;">
+                            Atas dasar Surat Keputusan terakhir tentang gaji/pangkat yang ditetapkan :
+                        </p>
+
+                        <table style="width: 95%; margin-left: 20px; margin-bottom: 6px; border-collapse: collapse;">
+                            <tr style="vertical-align: top;">
+                                <td style="width: 50%; padding-bottom: 2px;">a.&nbsp;&nbsp;&nbsp;Pejabat</td>
+                                <td style="width: 15px; text-align: center;">:</td>
+                                <td>${item.skPejabat}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">b.&nbsp;&nbsp;&nbsp;Tanggal</td>
+                                <td>:</td>
+                                <td>${formatDateIndo(item.skTanggal)}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">c.&nbsp;&nbsp;&nbsp;Nomor</td>
+                                <td>:</td>
+                                <td>${item.skNomor}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">d.&nbsp;&nbsp;&nbsp;Tanggal mulai berlakunya gaji</td>
+                                <td>:</td>
+                                <td>${formatDateIndo(item.skTmt)}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">e.&nbsp;&nbsp;&nbsp;Masa kerja golongan pada tanggal tersebut</td>
+                                <td>:</td>
+                                <td>${item.mkgThn} Tahun ${item.mkgBln} Bulan</td>
+                            </tr>
+                        </table>
+
+                        <p style="margin-bottom: 6px;">
+                            Diberikan kenaikan gaji berkala hingga memperoleh :
+                        </p>
+
+                        <table style="width: 95%; margin-left: 20px; margin-bottom: 8px; border-collapse: collapse;">
+                            <tr style="vertical-align: top;">
+                                <td style="width: 35%; font-weight: bold; padding-bottom: 2px;">6.&nbsp;&nbsp;Gaji Pokok baru</td>
+                                <td style="width: 15px; text-align: center;">:</td>
+                                <td style="font-weight: bold;">
+                                    Rp ${new Intl.NumberFormat('id-ID').format(item.gajiBaru)},-<br>
+                                    <span style="font-style: italic; font-size: 10pt; font-weight: normal;">(${terbilang(item.gajiBaru)})</span>
+                                </td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">7.&nbsp;&nbsp;Berdasarkan masa kerja</td>
+                                <td>:</td>
+                                <td>${item.mkgThn + 2} tahun 0 bulan</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">8.&nbsp;&nbsp;Dalam Golongan</td>
+                                <td>:</td>
+                                <td style="font-weight: bold;">${item.golongan}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">9.&nbsp;&nbsp;Mulai Tanggal</td>
+                                <td>:</td>
+                                <td style="font-weight: bold;">${formatDateIndo(item.tmtKgb)}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">10.Kenaikan gaji yang akan datang</td>
+                                <td>:</td>
+                                <td>${formatDateIndo(getFutureKgbDate(item.tmtKgb))}</td>
+                            </tr>
+                        </table>
+
+                        <p style="text-align: justify; margin-bottom: 30px;">
+                            Diharapkan agar sesuai dengan ${activeRegulations.pppk}, Pegawai tersebut dapat dibayarkan penghasilannya berdasarkan gaji pokok yang baru.
+                        </p>
+
+                        <div style="display: flex; justify-content: flex-end; margin-bottom: 24px;">
+
+                            <div style="text-align: center; width: 50%;">
+                                <p style="font-weight: bold; margin: 0; line-height: 1.2;">SEKRETARIS KOMISI PEMILIHAN UMUM</p>
+                                <p style="font-weight: bold; margin: 0; line-height: 1.2;">KABUPATEN ${satkerConfig.kabupaten.toUpperCase()},</p>
+                                <div style="height: 60px;"></div>
+                                <p style="font-weight: bold; text-decoration: underline; margin: 0;">${satkerConfig.sekretaris}</p>
+                                
+                            </div>
+                        </div>
+
+                        <div style="font-size: 12px; line-height: 1.3; margin-top: 8px;">
+                            <p style="margin: 0 0 2px 0;">Tembusan surat ini dikirimkan kepada Yth:</p>
+                            <table style="border-collapse: collapse; width: 100%; border: none;">
+                                <tr style="vertical-align: top;">
+                                    <td style="width: 20px; padding-bottom: 2px;">1.</td>
+                                    <td style="padding-bottom: 2px;">Kepala Badan Kepegawaian Negara di Jakarta;</td>
+                                </tr>
+                                <tr style="vertical-align: top;">
+                                    <td style="padding-bottom: 2px;">2.</td>
+                                    <td style="padding-bottom: 2px;">Kepala Kantor Regional VII BKN I Palembang;</td>
+                                </tr>
+                                <tr style="vertical-align: top;">
+                                    <td style="padding-bottom: 2px;">3.</td>
+                                    <td style="padding-bottom: 2px;">Sekretaris Jenderal KPU<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cq. a. Kepala Biro Sumber Daya Manusia<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b. Kepala Biro Keuangan
+                                    </td>
+                                </tr>
+                                <tr style="vertical-align: top;">
+                                    <td style="padding-bottom: 2px;">4.</td>
+                                    <td style="padding-bottom: 2px;">Sekretaris KPU Provinsi Jambi di Jambi;</td>
+                                </tr>
+                                <tr style="vertical-align: top;">
+                                    <td style="padding-bottom: 2px;">5.</td>
+                                    <td style="padding-bottom: 2px;">Bendahara KPU Kab. ${formatProperCase(satkerConfig.kabupaten)};</td>
+                                </tr>
+                                <tr style="vertical-align: top;">
+                                    <td style="padding-bottom: 2px;">6.</td>
+                                    <td style="padding-bottom: 2px;">Pegawai yang bersangkutan.</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            } else {
+                docHTML = `
+                    <div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.0; color: black; max-width: 100%;">
+                        <div style="font-family: Tahoma, Arial, sans-serif; font-size: 12px; line-height: 1.2; display: flex; align-items: center; justify-content: center; border-bottom: 4px double black; padding-bottom: 8px; margin-bottom: 14px; position: relative;">
+                            <img src="${instansiLogoSrc}" style="width: 70px; height: 80px; position: absolute; left: 15px; top: 50%; transform: translateY(-50%); object-fit: contain;" alt="Logo KPU">
+                            <div style="text-align: center; width: 100%; padding-left: 80px; padding-right: 20px;">
+                                <h1 style="font-size: 12px; font-weight: bold; margin: 0; letter-spacing: 0.5px; line-height: 1.2;">KOMISI PEMILIHAN UMUM</h1>
+                                <h2 style="font-size: 12px; font-weight: bold; margin: 2px 0 0 0; line-height: 1.2;">KABUPATEN ${satkerConfig.kabupaten}</h2>
+                                <p style="font-size: 12px; margin: 3px 0 0 0;">${satkerConfig.alamat}</p>
+<div style="display: flex; justify-content: space-between; font-size: 12px; margin: 6px 0 0 0;"><span>Telp. ${satkerConfig.telp}</span><span>Fax. ${satkerConfig.telp}</span></div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                            <div>
+                                <table style="font-size: 12px; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="width: 80px; padding-bottom: 2px;">Nomor</td>
+                                        <td>:</td>
+                                        <td style="font-weight: bold; padding-left: 5px;">${satkerConfig.nomorSurat || item.id}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-bottom: 2px;">Sifat</td>
+                                        <td>:</td>
+                                        <td style="padding-left: 5px;">Segera</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-bottom: 2px;">Lampiran</td>
+                                        <td>:</td>
+                                        <td style="padding-left: 5px;">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: bold; padding-bottom: 2px;">Perihal</td>
+                                        <td style="font-weight: bold;">:</td>
+                                        <td style="font-weight: bold; padding-left: 5px;">
+                                            Kenaikkan Gaji Berkala<br>
+                                            An. ${item.nama}<br>
+                                            NIP. ${item.nip}<br>
+                                            ${item.golongan}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div style="text-align: right;">
+                                <p style="margin-bottom: 6px;">Muara Sabak, ${formatDateIndo(item.tglSurat)}</p>
+                                <div style="text-align: left; display: inline-block;">
+                                    <p style="font-weight: bold; margin: 0;">Kepada Yth:</p>
+                                    <p style="font-weight: bold; margin: 0;">Kepala Kantor Pelayanan</p>
+                                    <p style="font-weight: bold; margin: 0;">dan Perbendaharaan Kuala Tungkal</p>
+                                    <p style="margin: 0;">di-</p>
+                                    <p style="font-weight: bold; text-decoration: underline; margin: 0; padding-left: 20px;">KUALA TUNGKAL</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p style="text-indent: 40px; text-align: justify; margin-bottom: 6px;">
+                            Dengan hormat diberitahukan bahwa telah terpenuhinya masa kerja dan syarat-syarat lainnya kepada :
+                        </p>
+
+                        <table style="width: 95%; margin-left: 20px; margin-bottom: 6px; border-collapse: collapse;">
+                            <tr style="vertical-align: top;">
+                                <td style="width: 35%; padding-bottom: 2px;">1. Nama</td>
+                                <td style="width: 15px; text-align: center;">:</td>
+                                <td style="font-weight: bold;">${item.nama}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">2. NIP</td>
+                                <td>:</td>
+                                <td>${item.nip}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">3. Pangkat/Gol. Ruang</td>
+                                <td>:</td>
+                                <td style="font-weight: bold;">${item.golongan}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">4. Unit Kerja</td>
+                                <td>:</td>
+                                <td>${item.unitKerja}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">5. Gaji Pokok lama</td>
+                                <td>:</td>
+                                <td>Rp ${new Intl.NumberFormat('id-ID').format(item.gajiLama)},-</td>
+                            </tr>
+                        </table>
+
+                        <p style="margin-bottom: 6px;">
+                            Atas dasar surat keputusan terakhir tentang gaji/pangkat yang telah ditetapkan sebagai berikut :
+                        </p>
+
+                        <table style="width: 95%; margin-left: 20px; margin-bottom: 6px; border-collapse: collapse;">
+                            <tr style="vertical-align: top;">
+                                <td style="width: 50%; padding-bottom: 2px;">a.&nbsp;&nbsp;&nbsp;Pejabat</td>
+                                <td style="width: 15px; text-align: center;">:</td>
+                                <td>${item.skPejabat}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">b.&nbsp;&nbsp;&nbsp;Tanggal</td>
+                                <td>:</td>
+                                <td>${formatDateIndo(item.skTanggal)}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">c.&nbsp;&nbsp;&nbsp;Nomor</td>
+                                <td>:</td>
+                                <td>${item.skNomor}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">d.&nbsp;&nbsp;&nbsp;Tanggal mulai berlakunya gaji</td>
+                                <td>:</td>
+                                <td>${formatDateIndo(item.skTmt)}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">e.&nbsp;&nbsp;&nbsp;Masa kerja golongan pada tanggal tersebut</td>
+                                <td>:</td>
+                                <td>${item.mkgThn} Tahun ${item.mkgBln} Bulan</td>
+                            </tr>
+                        </table>
+
+                        <p style="margin-bottom: 6px;">
+                            Diberikan Kenaikkan Gaji Berkala hingga memperoleh :
+                        </p>
+
+                        <table style="width: 95%; margin-left: 20px; margin-bottom: 8px; border-collapse: collapse;">
+                            <tr style="vertical-align: top;">
+                                <td style="width: 35%; font-weight: bold; padding-bottom: 2px;">6. Gaji Pokok baru</td>
+                                <td style="width: 15px; text-align: center;">:</td>
+                                <td style="font-weight: bold;">Rp ${new Intl.NumberFormat('id-ID').format(item.gajiBaru)},-</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">7. Berdasarkan masa kerja</td>
+                                <td>:</td>
+                                <td>${item.mkgThn + 2} Tahun 0 Bulan</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">8. Dalam Golongan</td>
+                                <td>:</td>
+                                <td style="font-weight: bold;">${item.golongan.includes('/') ? item.golongan.split('/')[1] : item.golongan}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">9. Mulai tanggal</td>
+                                <td>:</td>
+                                <td style="font-weight: bold; color: #641b23;">${formatDateIndo(item.tmtKgb)}</td>
+                            </tr>
+                            <tr style="vertical-align: top;">
+                                <td style="padding-bottom: 2px;">10.Kenaikan gaji yang akan datang</td>
+                                <td>:</td>
+                                <td>${formatDateIndo(getFutureKgbDate(item.tmtKgb))}</td>
+                            </tr>
+                        </table>
+
+                        <p style="text-align: justify; margin-bottom: 30px;">
+                            Diharapkan agar sesuai dengan ${activeRegulations.pns} kepada pegawai tersebut dapat dibayarkan penghasilannya berdasarkan gaji pokok yang baru.
+                        </p>
+
+                        <div style="display: flex; justify-content: flex-end; margin-bottom: 24px;">
+
+                            <div style="text-align: center; width: 50%;">
+                                <p style="font-weight: bold; margin: 0; line-height: 1.2;">SEKRETARIS,</p>
+                                <div style="height: 60px;"></div>
+                                <p style="font-weight: bold; text-decoration: underline; margin: 0;">${satkerConfig.sekretaris}</p>
+                                
+                            </div>
+                        </div>
+
+                        <div style="font-size: 12px; line-height: 1.3; margin-top: 8px;">
+                            <p style="margin: 0 0 2px 0;">Tembusan surat ini dikirimkan kepada Yth:</p>
+                            <table style="border-collapse: collapse; width: 100%; border: none;">
+                                <tr style="vertical-align: top;">
+                                    <td style="width: 20px; padding-bottom: 2px;">1.</td>
+                                    <td style="padding-bottom: 2px;">Kepala Badan Kepegawaian Negara di Jakarta;</td>
+                                </tr>
+                                <tr style="vertical-align: top;">
+                                    <td style="padding-bottom: 2px;">2.</td>
+                                    <td style="padding-bottom: 2px;">Kepala Kantor Regional VII BKN I Palembang;</td>
+                                </tr>
+                                <tr style="vertical-align: top;">
+                                    <td style="padding-bottom: 2px;">3.</td>
+                                    <td style="padding-bottom: 2px;">Sekretaris Jenderal KPU<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cq. a. Kepala Biro Sumber Daya Manusia<br>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;b. Kepala Biro Keuangan
+                                    </td>
+                                </tr>
+                                <tr style="vertical-align: top;">
+                                    <td style="padding-bottom: 2px;">4.</td>
+                                    <td style="padding-bottom: 2px;">Sekretaris KPU Provinsi Jambi di Jambi;</td>
+                                </tr>
+                                <tr style="vertical-align: top;">
+                                    <td style="padding-bottom: 2px;">5.</td>
+                                    <td style="padding-bottom: 2px;">Bendahara KPU Kab. ${formatProperCase(satkerConfig.kabupaten)};</td>
+                                </tr>
+                                <tr style="vertical-align: top;">
+                                    <td style="padding-bottom: 2px;">6.</td>
+                                    <td style="padding-bottom: 2px;">Pegawai yang bersangkutan.</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+
+            printContainer.innerHTML = docHTML;
+            document.getElementById('print-view-container').classList.remove('hide-view');
+        }
+
+        function getFutureKgbDate(currentTmt) {
+            const dt = new Date(currentTmt);
+            dt.setFullYear(dt.getFullYear() + 2);
+            return dt.toISOString().split('T')[0];
+        }
+
+        function triggerPrintDocument() {
+            window.print();
+        }
+
+        function exportToPdf(id) {
+            const item = usulanList.find(x => x.id === id);
+            if (!item) return;
+            previewKgbDocument(id);
+            showToast("Menyiapkan PDF... pilih 'Simpan sebagai PDF' pada dialog cetak.", "success");
+            setTimeout(() => { window.print(); }, 400);
+        }
+
+        function closePrintPreview() {
+            document.getElementById('print-view-container').classList.add('hide-view');
+        }
+
+        function toggleRefGaji(tipe) {
+            activeKgbType = tipe;
+            isEditingRefIndex = null;
+            const subSelector = document.getElementById('selector-ref-subgroup');
+            
+            if (tipe === 'PNS') {
+                document.getElementById('ref-btn-pns').className = "flex-1 py-2 px-4 rounded-lg font-bold text-xs uppercase tracking-wider transition-all bg-white text-kpu-900 shadow-sm";
+                document.getElementById('ref-btn-pppk').className = "flex-1 py-2 px-4 rounded-lg font-bold text-xs uppercase tracking-wider transition-all text-gray-600 hover:text-gray-800";
+                
+                subSelector.innerHTML = `
+                    <option value="GOL_IV">PNS Golongan IV (IV/a - IV/e)</option>
+                    <option value="GOL_III">PNS Golongan III (III/a - III/d)</option>
+                    <option value="GOL_II">PNS Golongan II (II/a - II/d)</option>
+                    <option value="GOL_I">PNS Golongan I (I/a - I/d)</option>
+                `;
+                activeRefSubgroup = "GOL_III";
+            } else {
+                document.getElementById('ref-btn-pppk').className = "flex-1 py-2 px-4 rounded-lg font-bold text-xs uppercase tracking-wider transition-all bg-white text-kpu-900 shadow-sm";
+                document.getElementById('ref-btn-pns').className = "flex-1 py-2 px-4 rounded-lg font-bold text-xs uppercase tracking-wider transition-all text-gray-600 hover:text-gray-800";
+                
+                subSelector.innerHTML = `
+                    <option value="PPPK_XIII_XVII">PPPK Golongan XIII - XVII</option>
+                    <option value="PPPK_IX_XII">PPPK Golongan IX - XII</option>
+                    <option value="PPPK_V_VIII">PPPK Golongan V - VIII</option>
+                    <option value="PPPK_I_IV">PPPK Golongan I - IV</option>
+                `;
+                activeRefSubgroup = "PPPK_XIII_XVII";
+            }
+            subSelector.value = activeRefSubgroup;
+            renderReferenceTable();
+        }
+
+        function renderReferenceTable() {
+            activeRefSubgroup = document.getElementById('selector-ref-subgroup').value;
+            const container = document.getElementById('container-tabel-gaji');
+            
+            let columns = [];
+            let dataset = {};
+
+            if (activeKgbType === 'PNS') {
+                dataset = dbGajiPNS;
+                if (activeRefSubgroup === 'GOL_IV') columns = ["IV/a", "IV/b", "IV/c", "IV/d", "IV/e"];
+                else if (activeRefSubgroup === 'GOL_III') columns = ["III/a", "III/b", "III/c", "III/d"];
+                else if (activeRefSubgroup === 'GOL_II') columns = ["II/a", "II/b", "II/c", "II/d"];
+                else columns = ["I/a", "I/b", "I/c", "I/d"];
+            } else {
+                dataset = dbGajiPPPK;
+                if (activeRefSubgroup === 'PPPK_XIII_XVII') columns = ["XIII", "XIV", "XV", "XVI", "XVII"];
+                else if (activeRefSubgroup === 'PPPK_IX_XII') columns = ["IX", "X", "XI", "XII"];
+                else if (activeRefSubgroup === 'PPPK_V_VIII') columns = ["V", "VI", "VII", "VIII"];
+                else columns = ["I", "II", "III", "IV"];
+            }
+
+            // Extract unique MKG (Years of Service) sorted chronologically
+            let mkgList = [];
+            columns.forEach(col => {
+                if (dataset[col]) {
+                    Object.keys(dataset[col]).forEach(m => {
+                        let mInt = parseInt(m);
+                        if (!mkgList.includes(mInt)) mkgList.push(mInt);
+                    });
+                }
+            });
+            mkgList.sort((a, b) => a - b);
+
+            const canEditReference = currentUser && currentUser.role === 'Admin';
+            let headerCols = columns.map(c => `<th class="px-4 py-3 border text-center">${c}</th>`).join('');
+            let rowsHTML = "";
+
+            mkgList.forEach((mkg, idx) => {
+                let cells = "";
+                let isEditingThisRow = canEditReference && (isEditingRefIndex === idx);
+
+                columns.forEach(col => {
+                    let val = (dataset[col] && dataset[col][mkg] !== undefined) ? dataset[col][mkg] : 0;
+                    if (isEditingThisRow) {
+                        cells += `
+                            <td class="px-4 py-2 border text-center">
+                                <input type="number" data-col="${col}" data-mkg="${mkg}" value="${val}" class="w-24 text-center px-1 py-1 border rounded text-xs outline-none focus:ring-1 focus:ring-kpu-500">
+                            </td>
+                        `;
+                    } else {
+                        cells += `<td class="px-4 py-2 border text-center font-bold text-gray-700">${formatCurrency(val)}</td>`;
+                    }
+                });
+
+                let actionBtn = "";
+                if (isEditingThisRow) {
+                    actionBtn = `
+                        <button onclick="saveInlineRefRow(${idx}, [${columns.map(c => `'${c}'`).join(',')}], ${mkg})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded text-xs font-semibold">
+                            <i class="fa-solid fa-check"></i> Simpan
+                        </button>
+                        <button onclick="cancelInlineEdit()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-2.5 py-1 rounded text-xs font-semibold">
+                            Batal
+                        </button>
+                    `;
+                } else {
+                    actionBtn = `
+                        <button onclick="editInlineRefRow(${idx})" class="text-blue-600 hover:text-blue-800 text-xs font-bold mr-2">
+                            <i class="fa-solid fa-edit"></i> Edit
+                        </button>
+                        <button onclick="deleteRefRow([${columns.map(c => `'${c}'`).join(',')}], ${mkg})" class="text-red-600 hover:text-red-800 text-xs font-bold">
+                            <i class="fa-solid fa-trash-can"></i> Hapus
+                        </button>
+                    `;
+                }
+
+                rowsHTML += `
+                    <tr class="hover:bg-slate-50/50">
+                        <td class="px-4 py-3 border text-center font-bold bg-slate-50">${mkg} Tahun</td>
+                        ${cells}
+                        ${canEditReference ? `<td class="px-4 py-3 border text-center whitespace-nowrap">${actionBtn}</td>` : ''}
+                    </tr>
+                `;
+            });
+
+            container.innerHTML = `
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead class="bg-kpu-900 text-white font-bold uppercase">
+                        <tr>
+                            <th class="px-4 py-3 border text-center">Masa Kerja (MKG)</th>
+                            ${headerCols}
+                            ${canEditReference ? '<th class="px-4 py-3 border text-center w-36">Aksi</th>' : ''}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y">
+                        ${rowsHTML}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function editInlineRefRow(idx) {
+            isEditingRefIndex = idx;
+            renderReferenceTable();
+        }
+
+        function cancelInlineEdit() {
+            isEditingRefIndex = null;
+            renderReferenceTable();
+        }
+
+        function saveInlineRefRow(idx, columns, mkg) {
+            let container = document.getElementById('container-tabel-gaji');
+            let inputs = container.querySelectorAll(`input[data-mkg="${mkg}"]`);
+            
+            inputs.forEach(inp => {
+                let col = inp.getAttribute('data-col');
+                let val = parseInt(inp.value) || 0;
+                
+                if (activeKgbType === 'PNS') {
+                    if (!dbGajiPNS[col]) dbGajiPNS[col] = {};
+                    dbGajiPNS[col][mkg] = val;
+                } else {
+                    if (!dbGajiPPPK[col]) dbGajiPPPK[col] = {};
+                    dbGajiPPPK[col][mkg] = val;
+                }
+            });
+
+            if (activeKgbType === 'PNS') {
+                saveToDatabase({ dbGajiPNS: dbGajiPNS });
+            } else {
+                saveToDatabase({ dbGajiPPPK: dbGajiPPPK });
+            }
+
+            isEditingRefIndex = null;
+            renderReferenceTable();
+            showToast("Perubahan gaji pokok berhasil disimpan!", "success");
+        }
+
+        function deleteRefRow(columns, mkg) {
+            if (!confirm(`Apakah Anda yakin ingin menghapus masa kerja ${mkg} Tahun dari grup ini?`)) return;
+
+            columns.forEach(col => {
+                if (activeKgbType === 'PNS') {
+                    if (dbGajiPNS[col]) delete dbGajiPNS[col][mkg];
+                } else {
+                    if (dbGajiPPPK[col]) delete dbGajiPPPK[col][mkg];
+                }
+            });
+
+            if (activeKgbType === 'PNS') {
+                saveToDatabase({ dbGajiPNS: dbGajiPNS });
+            } else {
+                saveToDatabase({ dbGajiPPPK: dbGajiPPPK });
+            }
+
+            renderReferenceTable();
+            showToast("Masa kerja berhasil dihapus!", "warning");
+        }
+
+        function addNewMkgRow() {
+            let mkgNew = prompt("Masukkan nilai Masa Kerja Golongan baru (dalam Tahun):");
+            if (mkgNew === null) return;
+            let mkgInt = parseInt(mkgNew);
+            if (isNaN(mkgInt) || mkgInt < 0) {
+                showToast("Masa kerja tidak valid!", "error");
+                return;
+            }
+
+            let columns = [];
+            if (activeKgbType === 'PNS') {
+                if (activeRefSubgroup === 'GOL_IV') columns = ["IV/a", "IV/b", "IV/c", "IV/d", "IV/e"];
+                else if (activeRefSubgroup === 'GOL_III') columns = ["III/a", "III/b", "III/c", "III/d"];
+                else if (activeRefSubgroup === 'GOL_II') columns = ["II/a", "II/b", "II/c", "II/d"];
+                else columns = ["I/a", "I/b", "I/c", "I/d"];
+            } else {
+                if (activeRefSubgroup === 'PPPK_IX_XII') columns = ["IX", "X", "XI", "XII"];
+                else columns = ["V", "VI", "VII", "VIII"];
+            }
+
+            // Verify if MKG already exists
+            let alreadyExists = false;
+            columns.forEach(col => {
+                let dataset = (activeKgbType === 'PNS') ? dbGajiPNS : dbGajiPPPK;
+                if (dataset[col] && dataset[col][mkgInt] !== undefined) alreadyExists = true;
+            });
+
+            if (alreadyExists) {
+                showToast("Masa kerja tersebut sudah terdaftar!", "warning");
+                return;
+            }
+
+            // Seed with 0 or estimate
+            columns.forEach(col => {
+                let dataset = (activeKgbType === 'PNS') ? dbGajiPNS : dbGajiPPPK;
+                if (!dataset[col]) dataset[col] = {};
+                dataset[col][mkgInt] = 0; 
+            });
+
+            if (activeKgbType === 'PNS') {
+                saveToDatabase({ dbGajiPNS: dbGajiPNS });
+            } else {
+                saveToDatabase({ dbGajiPPPK: dbGajiPPPK });
+            }
+
+            renderReferenceTable();
+            showToast(`Masa kerja ${mkgInt} Tahun berhasil ditambahkan! Silakan klik 'Edit' untuk menyesuaikan nominal.`, "success");
+        }
+
+        function downloadReferenceTemplate() {
+            // Generates an Excel of currently displayed reference columns
+            let columns = [];
+            if (activeKgbType === 'PNS') {
+                if (activeRefSubgroup === 'GOL_IV') columns = ["IV/a", "IV/b", "IV/c", "IV/d", "IV/e"];
+                else if (activeRefSubgroup === 'GOL_III') columns = ["III/a", "III/b", "III/c", "III/d"];
+                else if (activeRefSubgroup === 'GOL_II') columns = ["II/a", "II/b", "II/c", "II/d"];
+                else columns = ["I/a", "I/b", "I/c", "I/d"];
+            } else {
+                if (activeRefSubgroup === 'PPPK_XIII_XVII') columns = ["XIII", "XIV", "XV", "XVI", "XVII"];
+                else if (activeRefSubgroup === 'PPPK_IX_XII') columns = ["IX", "X", "XI", "XII"];
+                else if (activeRefSubgroup === 'PPPK_V_VIII') columns = ["V", "VI", "VII", "VIII"];
+                else columns = ["I", "II", "III", "IV"];
+            }
+
+            let dataset = (activeKgbType === 'PNS') ? dbGajiPNS : dbGajiPPPK;
+            let mkgList = [];
+            columns.forEach(col => {
+                if (dataset[col]) {
+                    Object.keys(dataset[col]).forEach(m => {
+                        let mInt = parseInt(m);
+                        if (!mkgList.includes(mInt)) mkgList.push(mInt);
+                    });
+                }
+            });
+            mkgList.sort((a, b) => a - b);
+
+            let headers = ["Masa Kerja (Tahun)", ...columns];
+            let rawData = [headers];
+
+            mkgList.forEach(mkg => {
+                let row = [mkg];
+                columns.forEach(col => {
+                    row.push((dataset[col] && dataset[col][mkg] !== undefined) ? dataset[col][mkg] : 0);
+                });
+                rawData.push(row);
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rawData);
+            XLSX.utils.book_append_sheet(wb, ws, "Referensi_Gaji");
+            XLSX.writeFile(wb, `Referensi_Gaji_${activeKgbType}_${activeRefSubgroup}.xlsx`);
+            showToast("Berkas ekspor & template referensi berhasil diunduh!", "success");
+        }
+
+        function handleReferenceImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    if (jsonData.length < 2) {
+                        showToast("File tidak valid atau kosong!", "error");
+                        return;
+                    }
+
+                    let headers = jsonData[0];
+                    let dataset = (activeKgbType === 'PNS') ? dbGajiPNS : dbGajiPPPK;
+
+                    // Match headers to verify they fit
+                    for (let i = 1; i < jsonData.length; i++) {
+                        let row = jsonData[i];
+                        if (!row || row.length < 2) continue;
+                        let mkg = parseInt(row[0]);
+                        if (isNaN(mkg)) continue;
+
+                        for (let j = 1; j < headers.length; j++) {
+                            let colName = String(headers[j]).trim();
+                            let val = parseInt(row[j]) || 0;
+                            if (dataset[colName] !== undefined) {
+                                dataset[colName][mkg] = val;
+                            }
+                        }
+                    }
+
+                    if (activeKgbType === 'PNS') {
+                        saveToDatabase({ dbGajiPNS: dbGajiPNS });
+                    } else {
+                        saveToDatabase({ dbGajiPPPK: dbGajiPPPK });
+                    }
+
+                    renderReferenceTable();
+                    showToast("Database referensi gaji pokok berhasil diperbarui dari Excel!", "success");
+                } catch(err) {
+                    showToast("Gagal memproses file Excel!", "error");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = ''; 
+        }
+
+        // INITIALIZATION ON DOCUMENT LOAD
+        document.addEventListener('DOMContentLoaded', () => {
+            const chartCanvas = document.getElementById('kgbChart');
+            if (chartCanvas) {
+                const ctx = chartCanvas.getContext('2d');
+                mainChartObj = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Diajukan', 'Dalam Proses', 'Selesai'],
+                        datasets: [{
+                            data: [1, 0, 2],
+                            backgroundColor: ['#641b23', '#2563eb', '#10b981'],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        }
+                    }
+                });
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            const tglSuratEl = document.getElementById('form-tgl-surat');
+            if (tglSuratEl) tglSuratEl.value = today;
+            
+            const skTglEl = document.getElementById('form-sk-tgl');
+            if (skTglEl) skTglEl.value = "2024-04-24";
+            
+            const skTmtEl = document.getElementById('form-sk-tmt');
+            if (skTmtEl) skTmtEl.value = "2024-02-01";
+            
+            saveSatkerConfig();
+        });
+    </script>
+</body>
+</html>
