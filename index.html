@@ -260,6 +260,11 @@
                     </a>
                 </li>
                 <li>
+                    <a href="#" onclick="switchView('arsip')" id="nav-desktop-arsip" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors border-l-4 border-transparent">
+                        <i class="fa-solid fa-box-archive w-5 text-center"></i> Arsip Dokumen KGB
+                    </a>
+                </li>
+                <li>
                     <a href="#" onclick="switchView('referensi')" id="nav-desktop-referensi" class="nav-item flex items-center gap-3 px-6 py-3 text-sm text-gray-200 hover:bg-white/10 transition-colors border-l-4 border-transparent">
                         <i class="fa-solid fa-book-bookmark w-5 text-center"></i> Referensi Gaji Pokok
                     </a>
@@ -795,6 +800,41 @@
                 </div>
             </div>
 
+            
+            <!-- VIEW ARSIP -->
+            <div id="view-arsip" class="app-view hide-view relative z-10 max-w-7xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-gray-900">Arsip Dokumen KGB</h2>
+                        <p class="text-xs text-gray-500">Kumpulan arsip KGB Pegawai.</p>
+                    </div>
+                    <button onclick="openAddArsipModal()" class="bg-kpu-700 hover:bg-kpu-800 text-white text-xs font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow uppercase tracking-wider">
+                        <i class="fa-solid fa-plus"></i> Tambah Arsip
+                    </button>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+                    <div class="p-4 border-b bg-gray-50 flex gap-4 items-center">
+                        <div class="relative flex-1">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i class="fa-solid fa-search text-xs"></i>
+                            </span>
+                            <input type="text" id="arsip-search" onkeyup="renderArsipTable()" placeholder="Cari arsip..." class="w-full pl-9 pr-4 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500 transition-shadow">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-gray-100 text-gray-600 text-xs uppercase font-bold tracking-wider">
+                                <tr id="arsip-table-head-row"></tr>
+                            </thead>
+                            <tbody id="arsip-table-body" class="divide-y divide-gray-100">
+                                <!-- Isi Arsip -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- VIEW 6: PENGATURAN PERATURAN -->
             <div id="view-peraturan" class="app-view hide-view relative z-10 max-w-4xl mx-auto admin-only">
                 <div class="mb-6">
@@ -976,6 +1016,42 @@
         </div>
 
         <!-- MODAL WINDOWS FOR ADDING DATA -->
+
+    <!-- MODAL ADD/EDIT ARSIP -->
+    <div id="modal-add-arsip" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 hide-view">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-kpu-900 px-6 py-4 flex justify-between items-center">
+                <h3 id="arsip-modal-title" class="text-white font-bold text-lg">Tambah Arsip KGB</h3>
+                <button onclick="closeAddArsipModal()" class="text-white/70 hover:text-white transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <form id="form-add-arsip" onsubmit="submitAddArsip(event)" class="space-y-4">
+                    <div id="arsip-pegawai-field">
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nama Pegawai</label>
+                        <select id="arsip-pegawai" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                            <option value="">-- Pilih Pegawai --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Data KGB</label>
+                        <input type="text" id="arsip-data-kgb" required placeholder="Contoh: KGB TMT 1 Februari 2026" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Upload Berkas PDF</label>
+                        <input type="file" id="arsip-upload-pdf" accept="application/pdf,.pdf" class="w-full px-3 py-2 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-kpu-500 outline-none">
+                        <p id="arsip-current-file" class="text-[11px] text-gray-500 mt-1">PDF maksimal 3 MB.</p>
+                    </div>
+                    <div class="pt-4 flex gap-3">
+                        <button type="button" onclick="closeAddArsipModal()" class="flex-1 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 font-bold py-2.5 rounded-lg transition-colors text-sm">Batal</button>
+                        <button type="submit" class="flex-1 bg-kpu-600 hover:bg-kpu-700 text-white font-bold py-2.5 rounded-lg transition-colors text-sm shadow">Simpan Arsip</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
         <!-- Add Employee Modal -->
         <div id="modal-pegawai" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 hide-view">
             <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -1021,30 +1097,30 @@
         <!-- Add User Modal -->
         <div id="modal-user" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 hide-view">
             <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 max-h-[90vh] overflow-y-auto">
-                <h3 class="text-lg font-bold text-gray-900">Tambah Akun Pengguna</h3>
+                <h3 id="user-modal-title" class="text-lg font-bold text-gray-900">Tambah Akun Pengguna</h3>
                 <div class="space-y-3">
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">Username / NIP</label>
-                        <input type="text" id="m-user-uname" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
+                        <input type="text" id="user-username" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">Email</label>
-                        <input type="email" id="m-user-email" class="w-full px-3 py-2 border rounded-lg text-sm outline-none" placeholder="contoh@kpu.go.id">
+                        <input type="email" id="user-email" class="w-full px-3 py-2 border rounded-lg text-sm outline-none" placeholder="contoh@kpu.go.id">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">Nama Lengkap</label>
-                        <input type="text" id="m-user-nama" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
+                        <input type="text" id="user-nama" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">Role / Hak Akses</label>
-                        <select id="m-user-role" class="w-full px-3 py-2 border rounded-lg text-sm bg-white outline-none">
+                        <select id="user-role" class="w-full px-3 py-2 border rounded-lg text-sm bg-white outline-none">
                             <option value="Admin">Admin</option>
                             <option value="Pegawai">Pegawai</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-600 mb-1">Password</label>
-                        <input type="password" id="m-user-pass" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
+                        <input type="password" id="user-pass" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
@@ -1455,6 +1531,8 @@
 
             if (viewName === 'daftar-usulan') {
                 renderUsulanTable();
+            } else if (viewName === 'arsip') {
+                renderArsipTable();
             } else if (viewName === 'referensi') {
                 toggleRefGaji('PNS');
             } else if (viewName === 'pegawai') {
@@ -1832,41 +1910,100 @@
                     <td class="px-6 py-4">${u.nama}</td>
                     <td class="px-6 py-4 text-xs font-semibold uppercase text-slate-500">${u.role}</td>
                     <td class="px-6 py-4 text-center"><span class="bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded">${u.status}</span></td>
+                    <td class="px-6 py-4 text-center">
+                        <div class="flex justify-center items-center gap-2">
+                            <button onclick="editUser('${u.username}')" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-1.5 rounded transition-all" title="Ubah User">
+                                <i class="fa-solid fa-pencil text-sm"></i>
+                            </button>
+                            <button onclick="deleteUser('${u.username}')" class="text-red-600 hover:text-red-800 hover:bg-red-50 p-1.5 rounded transition-all" title="Hapus User" ${u.username === 'admin' ? 'disabled class="text-gray-400 p-1.5"' : ''}>
+                                <i class="fa-solid fa-trash-can text-sm"></i>
+                            </button>
+                        </div>
+                    </td>
                 `;
                 body.appendChild(tr);
             });
         }
 
+                let editingUserUsername = null;
+        function editUser(username) {
+            const u = userList.find(x => x.username === username);
+            if (!u) return;
+            editingUserUsername = username;
+            document.getElementById('user-modal-title').textContent = 'Ubah Akun Pengguna';
+            
+            document.getElementById('user-username').value = u.username;
+            document.getElementById('user-email').value = u.email || '';
+            document.getElementById('user-nama').value = u.nama;
+            document.getElementById('user-role').value = u.role;
+            document.getElementById('user-pass').value = u.pass;
+            
+            document.getElementById('user-username').readOnly = username === 'admin';
+            
+            document.getElementById('modal-user').classList.remove('hide-view');
+        }
+
+        function deleteUser(username) {
+            if (username === 'admin') {
+                alert("Admin utama tidak dapat dihapus!");
+                return;
+            }
+            if (confirm(`Apakah Anda yakin ingin menghapus user ${username}?`)) {
+                userList = userList.filter(x => x.username !== username);
+                saveToDatabase({ userList: userList });
+                renderUserTable();
+                showToast("Pengguna berhasil dihapus!", "success");
+            }
+        }
+
         function openAddUserModal() {
+            editingUserUsername = null;
+            document.getElementById('user-modal-title').textContent = 'Tambah Akun Pengguna';
+            document.getElementById('user-username').value = '';
+            document.getElementById('user-email').value = '';
+            document.getElementById('user-nama').value = '';
+            document.getElementById('user-role').value = 'Pegawai';
+            document.getElementById('user-pass').value = 'edudigital';
+            document.getElementById('user-username').readOnly = false;
             document.getElementById('modal-user').classList.remove('hide-view');
         }
 
         function closeModalUser() {
             document.getElementById('modal-user').classList.add('hide-view');
+            editingUserUsername = null;
         }
 
         function submitNewUser() {
-            const u = document.getElementById('m-user-uname').value;
-            const email = document.getElementById('m-user-email').value;
-            const n = document.getElementById('m-user-nama').value;
-            const r = document.getElementById('m-user-role').value;
-            const p = document.getElementById('m-user-pass').value;
+            const u = document.getElementById('user-username').value.trim();
+            const em = document.getElementById('user-email').value.trim();
+            const nm = document.getElementById('user-nama').value.trim();
+            const r = document.getElementById('user-role').value;
+            const p = document.getElementById('user-pass').value;
 
-            if(!u || !n || !p) return;
+            if (!u || !nm || !p) {
+                alert("Username, Nama, dan Password harus diisi!");
+                return;
+            }
 
-            userList.push({
-                username: u,
-                email: email,
-                nama: n,
-                role: r,
-                status: "Aktif",
-                pass: p
-            });
-
+            if (editingUserUsername) {
+                const idx = userList.findIndex(x => x.username === editingUserUsername);
+                if (idx > -1) {
+                    // Update
+                    userList[idx] = { ...userList[idx], username: u, email: em, nama: nm, role: r, pass: p };
+                }
+                showToast("Pengguna berhasil diperbarui!", "success");
+            } else {
+                if (userList.some(x => x.username.toLowerCase() === u.toLowerCase())) {
+                    alert("Username sudah digunakan!");
+                    return;
+                }
+                userList.push({ username: u, email: em, nama: nm, role: r, status: "Aktif", pass: p });
+                showToast("Pengguna baru berhasil ditambahkan!", "success");
+            }
+            
             saveToDatabase({ userList: userList });
             closeModalUser();
             renderUserTable();
-            showToast("Akun admin/staf berhasil dibuat!", "success");
         }
 
         function togglePegawaiType() {
@@ -2376,6 +2513,242 @@
                 mainChartObj.data.datasets[0].data = [diajukanVal, diprosesVal, disetujuiVal];
                 mainChartObj.update();
             }
+        }
+
+        
+        
+        
+        let editingArsipId = null;
+
+        function setupArsipPegawaiField(selectedNip = '') {
+            const isAdmin = currentUser && currentUser.role === 'Admin';
+            const field = document.getElementById('arsip-pegawai-field');
+            const select = document.getElementById('arsip-pegawai');
+            field.classList.toggle('hide-view', !isAdmin);
+            select.required = isAdmin;
+            select.innerHTML = '<option value="">-- Pilih Pegawai --</option>';
+            if (isAdmin) {
+                pegawaiList.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.NIP;
+                    opt.textContent = `${p.nama} (${p.NIP})`;
+                    select.appendChild(opt);
+                });
+                select.value = selectedNip || '';
+            } else {
+                select.value = currentUser ? currentUser.code : '';
+            }
+        }
+
+        function openAddArsipModal() {
+            editingArsipId = null;
+            document.getElementById('arsip-modal-title').textContent = 'Tambah Arsip KGB';
+            setupArsipPegawaiField();
+            document.getElementById('arsip-data-kgb').value = '';
+            document.getElementById('arsip-upload-pdf').value = '';
+            document.getElementById('arsip-current-file').textContent = 'PDF maksimal 3 MB.';
+            document.getElementById('modal-add-arsip').classList.remove('hide-view');
+        }
+
+        function openEditArsipModal(id) {
+            const item = usulanList.find(x => x.id === id);
+            if (!item) return;
+            if (currentUser && currentUser.role === 'Pegawai' && item.nip !== currentUser.code) return;
+            editingArsipId = id;
+            document.getElementById('arsip-modal-title').textContent = 'Ubah Arsip KGB';
+            setupArsipPegawaiField(item.nip);
+            document.getElementById('arsip-data-kgb').value = item.arsipDataKgb || `KGB TMT ${formatDateIndo(item.tmtKgb)}`;
+            document.getElementById('arsip-upload-pdf').value = '';
+            const pdf = (item.berkasKgb || []).find(f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''));
+            document.getElementById('arsip-current-file').textContent = pdf ? `Berkas saat ini: ${pdf.name}` : 'Belum ada PDF. Maksimal 3 MB.';
+            document.getElementById('modal-add-arsip').classList.remove('hide-view');
+        }
+
+        function closeAddArsipModal() {
+            document.getElementById('modal-add-arsip').classList.add('hide-view');
+            editingArsipId = null;
+        }
+
+        function readArsipPdf(file) {
+            return new Promise((resolve, reject) => {
+                if (!file) return resolve(null);
+                if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) return reject(new Error('Berkas harus berformat PDF.'));
+                if (file.size > 3 * 1024 * 1024) return reject(new Error('Ukuran PDF maksimal 3 MB.'));
+                const reader = new FileReader();
+                reader.onload = () => resolve({ name: file.name, type: 'application/pdf', size: file.size, data: reader.result });
+                reader.onerror = () => reject(new Error('Gagal membaca berkas PDF.'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function submitAddArsip(event) {
+            event.preventDefault();
+            const isAdmin = currentUser && currentUser.role === 'Admin';
+            const nip = isAdmin ? document.getElementById('arsip-pegawai').value : currentUser.code;
+            const dataKgb = document.getElementById('arsip-data-kgb').value.trim();
+            const file = document.getElementById('arsip-upload-pdf').files[0] || null;
+            const existing = editingArsipId ? usulanList.find(x => x.id === editingArsipId) : null;
+            const peg = pegawaiList.find(x => x.NIP === nip) || (existing ? {
+                nama: existing.nama, NIP: existing.nip, golongan: existing.golongan,
+                tipe: existing.tipe, mkgThn: existing.mkgThn || 0, mkgBln: existing.mkgBln || 0
+            } : null);
+
+            if (!peg || !dataKgb) return showToast('Nama pegawai dan Data KGB wajib diisi.', 'error');
+            if (!existing && !file) return showToast('Berkas PDF wajib diunggah.', 'error');
+
+            let pdf = null;
+            try { pdf = await readArsipPdf(file); }
+            catch (error) { return showToast(error.message, 'error'); }
+
+            if (existing) {
+                existing.nama = peg.nama;
+                existing.nip = peg.NIP;
+                existing.golongan = peg.golongan;
+                existing.tipe = peg.tipe;
+                existing.arsipDataKgb = dataKgb;
+                if (pdf) {
+                    const nonPdf = (existing.berkasKgb || []).filter(f => f.type !== 'application/pdf' && !/\.pdf$/i.test(f.name || ''));
+                    existing.berkasKgb = [...nonPdf, pdf];
+                }
+                showToast('Daftar arsip berhasil diubah.', 'success');
+            } else {
+                const newId = usulanList.length ? Math.max(...usulanList.map(x => Number(x.id) || 0)) + 1 : 1;
+                const today = new Date().toISOString().split('T')[0];
+                usulanList.push({
+                    id: newId, nama: peg.nama, nip: peg.NIP, golongan: peg.golongan,
+                    tipe: peg.tipe, status: 'Selesai', arsipDataKgb: dataKgb,
+                    tmtKgb: today, tglSurat: today, gajiLama: 0, gajiBaru: 0,
+                    skNomor: '-', skTanggal: today, skPejabat: '-', skTmt: today,
+                    mkgThn: peg.mkgThn || 0, mkgBln: peg.mkgBln || 0,
+                    unitKerja: satkerConfig.nama || 'Sekretariat KPU', berkasKgb: [pdf]
+                });
+                showToast('Arsip KGB berhasil ditambahkan.', 'success');
+            }
+
+            saveToDatabase({ usulanList });
+            closeAddArsipModal();
+            renderArsipTable();
+        }
+
+        function renderArsipTable() {
+            const body = document.getElementById('arsip-table-body');
+            const head = document.getElementById('arsip-table-head-row');
+            if (!body || !head) return;
+            body.innerHTML = '';
+            const isAdmin = currentUser && currentUser.role === 'Admin';
+            head.innerHTML = isAdmin
+                ? `<th class="px-6 py-4">Nama Pegawai</th><th class="px-6 py-4">Data KGB</th><th class="px-6 py-4">Berkas PDF</th><th class="px-6 py-4 text-center">Aksi</th>`
+                : `<th class="px-6 py-4">Data KGB</th><th class="px-6 py-4">Berkas PDF</th><th class="px-6 py-4 text-center">Aksi</th>`;
+
+            let rows = usulanList.filter(item => item.status === 'Selesai');
+            if (!isAdmin) rows = rows.filter(item => item.nip === currentUser.code);
+            const q = String(document.getElementById('arsip-search')?.value || '').toLowerCase();
+            if (q) rows = rows.filter(item => `${item.nama} ${item.nip} ${item.arsipDataKgb || ''}`.toLowerCase().includes(q));
+            if (!rows.length) {
+                body.innerHTML = `<tr><td colspan="${isAdmin ? 4 : 3}" class="px-6 py-8 text-center text-gray-500 italic">Belum ada dokumen arsip.</td></tr>`;
+                return;
+            }
+
+            rows.forEach(item => {
+                const pdf = (item.berkasKgb || []).find(f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''));
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-kpu-50/20 transition-colors border-b';
+                tr.innerHTML = `
+                    ${isAdmin ? `<td class="px-6 py-4"><div class="font-bold text-gray-900">${item.nama}</div><div class="text-xs text-gray-500">${item.nip}</div></td>` : ''}
+                    <td class="px-6 py-4"><div class="font-bold text-gray-900">${item.arsipDataKgb || `KGB TMT ${formatDateIndo(item.tmtKgb)}`}</div><div class="text-xs text-gray-500">${item.tipe || '-'} · ${item.golongan || '-'}</div></td>
+                    <td class="px-6 py-4">${pdf ? `<span class="text-red-700 text-xs font-bold"><i class="fa-solid fa-file-pdf mr-1"></i>${pdf.name}</span>` : '<span class="text-xs text-gray-400">Belum ada PDF</span>'}</td>
+                    <td class="px-6 py-4 text-center"><div class="flex justify-center gap-1">
+                        <button onclick="viewArsipPdf(${item.id})" class="text-emerald-600 hover:bg-emerald-50 p-2 rounded" title="Lihat berkas"><i class="fa-solid fa-eye"></i></button>
+                        <button onclick="openEditArsipModal(${item.id})" class="text-blue-600 hover:bg-blue-50 p-2 rounded" title="Ubah arsip"><i class="fa-solid fa-pencil"></i></button>
+                        <button onclick="deleteArsip(${item.id})" class="text-red-600 hover:bg-red-50 p-2 rounded" title="Hapus arsip"><i class="fa-solid fa-trash-can"></i></button>
+                    </div></td>`;
+                body.appendChild(tr);
+            });
+        }
+
+        function uploadArsipPdf(id, event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) {
+                showToast('Berkas arsip harus berformat PDF.', 'error');
+                event.target.value = '';
+                return;
+            }
+            if (file.size > 3 * 1024 * 1024) {
+                showToast('Ukuran PDF maksimal 3 MB.', 'error');
+                event.target.value = '';
+                return;
+            }
+            const item = usulanList.find(x => x.id === id);
+            if (!item) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                const nonPdf = (item.berkasKgb || []).filter(f => f.type !== 'application/pdf' && !/\.pdf$/i.test(f.name || ''));
+                item.berkasKgb = [...nonPdf, { name: file.name, type: 'application/pdf', size: file.size, data: reader.result }];
+                saveToDatabase({ usulanList });
+                renderArsipTable();
+                showToast('Berkas PDF berhasil diunggah.', 'success');
+            };
+            reader.onerror = () => showToast('Gagal membaca berkas PDF.', 'error');
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function dataUrlToPdfBlob(dataUrl) {
+            if (!dataUrl || !dataUrl.startsWith('data:')) return null;
+            const parts = dataUrl.split(',');
+            const meta = parts[0] || '';
+            const raw = meta.includes(';base64') ? atob(parts[1] || '') : decodeURIComponent(parts[1] || '');
+            const bytes = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+            return new Blob([bytes], { type: 'application/pdf' });
+        }
+
+        function viewArsipPdf(id) {
+            const item = usulanList.find(x => x.id === id);
+            const pdf = item && (item.berkasKgb || []).find(f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''));
+            if (!pdf || !pdf.data) return showToast('Berkas PDF belum tersedia.', 'warning');
+
+            let viewUrl = pdf.data;
+            let objectUrl = null;
+            try {
+                const blob = dataUrlToPdfBlob(pdf.data);
+                if (blob) {
+                    objectUrl = URL.createObjectURL(blob);
+                    viewUrl = objectUrl;
+                }
+                const win = window.open(viewUrl, '_blank', 'noopener,noreferrer');
+                if (!win) {
+                    const link = document.createElement('a');
+                    link.href = viewUrl;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                }
+                if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+            } catch (error) {
+                console.error('Gagal membuka PDF:', error);
+                downloadStoredKgbFile(pdf);
+            }
+        }
+
+        function viewArsip(id) {
+            const item = usulanList.find(x => x.id === id);
+            const pdf = item && (item.berkasKgb || []).find(f => f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''));
+            if (pdf) viewArsipPdf(id);
+            else previewKgbDocument(id);
+        }
+
+        function deleteArsip(id) {
+            if (!confirm('Apakah Anda yakin ingin menghapus arsip KGB ini?')) return;
+            usulanList = usulanList.filter(x => x.id !== id);
+            saveToDatabase({ usulanList });
+            renderArsipTable();
+            renderUsulanTable();
+            initDashboard();
+            showToast('Arsip KGB berhasil dihapus.', 'warning');
         }
 
         function renderUsulanTable() {
