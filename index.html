@@ -133,13 +133,15 @@
 
     <!-- LOGIN SCREEN VIEW -->
     <div id="view-login" class="fixed inset-0 bg-kpu-900 flex items-center justify-center z-50 p-4">
-        <div class="absolute inset-0 opacity-10 bg-no-repeat bg-center pointer-events-none" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/4/46/Logo_KPU.svg'); background-size: 40%;"></div>
+        <div id="login-logo-background" class="absolute inset-0 opacity-10 bg-no-repeat bg-center pointer-events-none" style="background-image: url('https://upload.wikimedia.org/wikipedia/commons/4/46/Logo_KPU.svg'); background-size: 40%;"></div>
         
         <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 relative z-10 border border-kpu-100">
             <div class="flex flex-col items-center mb-6">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Logo_KPU.svg" alt="Logo KPU" class="w-20 h-20 mb-3 drop-shadow-md">
-                <h1 class="text-xl font-bold text-kpu-900 text-center leading-tight">KOMISI PEMILIHAN UMUM</h1>
-                <p class="text-xs text-gray-500 font-semibold tracking-wide uppercase mt-1">Kab. Tanjung Jabung Timur</p>
+                <img id="login-logo" src="https://upload.wikimedia.org/wikipedia/commons/4/46/Logo_KPU.svg" alt="Logo Satker" class="w-20 h-20 mb-3 drop-shadow-md object-contain">
+                <h1 class="font-bold text-kpu-900 text-center uppercase" style="font-family: Tahoma, Arial, sans-serif; font-size: 12px; line-height: 1.35;">KOMISI PEMILIHAN UMUM</h1>
+                <p id="login-agency-region" class="font-bold text-kpu-900 text-center uppercase" style="font-family: Tahoma, Arial, sans-serif; font-size: 12px; line-height: 1.35;">KABUPATEN TANJUNG JABUNG TIMUR</p>
+                <p class="text-center text-kpu-700 font-extrabold mt-2" style="font-family: Tahoma, Arial, sans-serif; font-size: 16px; line-height: 1.25;">SIKAGA</p>
+                <p class="text-center text-gray-500 mt-0.5" style="font-family: Tahoma, Arial, sans-serif; font-size: 12px; line-height: 1.35;">(Sistem Informasi Kenaikan Gaji Berkala)</p>
                 <div class="w-12 h-1 bg-kpu-500 rounded mt-3"></div>
             </div>
             
@@ -1599,6 +1601,22 @@
             }, 100);
         }
 
+        function applySatkerBranding() {
+            const defaultLogo = 'https://upload.wikimedia.org/wikipedia/commons/4/46/Logo_KPU.svg';
+            const logoSrc = satkerConfig && satkerConfig.logo ? satkerConfig.logo : defaultLogo;
+            ['login-logo', 'sidebar-logo', 'mobile-header-logo', 'satker-logo-preview'].forEach(id => {
+                const image = document.getElementById(id);
+                if (image) image.src = logoSrc;
+            });
+            const loginBackground = document.getElementById('login-logo-background');
+            if (loginBackground) loginBackground.style.backgroundImage = `url("${logoSrc}")`;
+            const agencyRegion = document.getElementById('login-agency-region');
+            if (agencyRegion) {
+                const kabupaten = (satkerConfig && satkerConfig.kabupaten ? satkerConfig.kabupaten : 'Tanjung Jabung Timur').toUpperCase();
+                agencyRegion.textContent = `KABUPATEN ${kabupaten}`;
+            }
+        }
+
         function handleLogoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -1608,10 +1626,8 @@
                 const base64Str = e.target.result;
                 satkerConfig.logo = base64Str;
                 saveToDatabase({ satkerConfig: satkerConfig });
-                document.getElementById('satker-logo-preview').src = base64Str;
-                document.getElementById('sidebar-logo').src = base64Str;
-                document.getElementById('mobile-header-logo').src = base64Str;
-                showToast("Logo instansi berhasil diunggah!", "success");
+                applySatkerBranding();
+                showToast("Logo instansi berhasil diunggah dan diterapkan ke halaman login!", "success");
             };
             reader.readAsDataURL(file);
         }
@@ -1862,9 +1878,7 @@
             document.getElementById('satker-tanggal-surat').value = satkerConfig.tanggalSurat || '';
             document.getElementById('satker-sekretaris').value = satkerConfig.sekretaris;
             
-            if(satkerConfig.logo) {
-                document.getElementById('satker-logo-preview').src = satkerConfig.logo;
-            }
+            applySatkerBranding();
         }
 
         function saveSatkerConfig() {
@@ -1883,6 +1897,7 @@
 
             document.getElementById('dash-satker-name').textContent = `${satkerConfig.nama} Kabupaten ${satkerConfig.kabupaten}`;
             document.getElementById('welcome-satker-full').textContent = `Sekretariat ${satkerConfig.nama} Kabupaten ${satkerConfig.kabupaten}`;
+            applySatkerBranding();
             showToast("Konfigurasi data Satker diperbarui!", "success");
         }
 
@@ -3612,9 +3627,9 @@
         }
 
         // INITIALIZATION ON DOCUMENT LOAD
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             const chartCanvas = document.getElementById('kgbChart');
-            if (chartCanvas) {
+            if (chartCanvas && typeof Chart !== 'undefined') {
                 const ctx = chartCanvas.getContext('2d');
                 mainChartObj = new Chart(ctx, {
                     type: 'doughnut',
@@ -3647,7 +3662,9 @@
             const skTmtEl = document.getElementById('form-sk-tmt');
             if (skTmtEl) skTmtEl.value = "2024-02-01";
             
-            saveSatkerConfig();
+            await fetchFirebaseData();
+            applySatkerBranding();
+            checkLogin();
         });
     </script>
 </body>
