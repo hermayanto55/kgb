@@ -569,13 +569,23 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Unit Kerja / Penempatan</label>
+                                <input type="text" id="form-unit-kerja" value="Sekretariat KPU Kab. Tanjung Jabung Timur" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                            </div>
+
+                            <h3 class="text-sm font-bold text-gray-800 border-b pb-2 pt-2 uppercase tracking-wider flex items-center gap-2"><i class="fa-solid fa-envelope-open-text text-kpu-600"></i> Informasi Surat</h3>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Unit Kerja / Penempatan</label>
-                                    <input type="text" id="form-unit-kerja" value="Sekretariat KPU Kab. Tanjung Jabung Timur" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nomor Surat</label>
+                                    <input type="text" id="form-nomor-surat" placeholder="Contoh: 38/SDM.09-SD/1507/2026" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
                                 </div>
                                 <div>
-                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tanggal Buat Surat</label>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tempat Surat</label>
+                                    <input type="text" id="form-tempat-surat" placeholder="Contoh: Muara Sabak" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tanggal Surat</label>
                                     <input type="date" id="form-tgl-surat" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
                                 </div>
                             </div>
@@ -625,28 +635,17 @@
                                 <span class="text-xs font-bold text-gray-600 uppercase tracking-wide">Estimasi Gaji Pokok Berdasarkan Database Resmi</span>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div class="bg-white p-3 rounded-lg border border-gray-200">
-                                        <p class="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase">Gaji Pokok Terakhir</p>
-                                        <p id="calc-gaji-lama" class="text-base md:text-lg font-extrabold text-gray-700">Rp 0,-</p>
+                                        <label for="calc-gaji-lama" class="text-[9px] md:text-[10px] text-gray-500 font-bold uppercase block mb-2">Gaji Pokok Terakhir</label>
+                                        <div class="rounded-lg border border-gray-300 bg-white overflow-hidden focus-within:ring-2 focus-within:ring-kpu-500">
+                                            <input type="text" inputmode="numeric" id="calc-gaji-lama" placeholder="Rp 3.304.400,-" onfocus="this.select()" oninput="formatSalaryInput(this); calculateAutomaticGaji()" class="w-full px-3 py-2 text-base font-extrabold text-gray-700 outline-none">
+                                        </div>
                                     </div>
                                     <div class="bg-kpu-50 p-3 rounded-lg border border-kpu-100">
                                         <p class="text-[9px] md:text-[10px] text-kpu-600 font-bold uppercase">Proyeksi Gaji Baru (+2 Tahun KGB)</p>
                                         <p id="calc-gaji-baru" class="text-base md:text-lg font-extrabold text-kpu-900">Rp 0,-</p>
+                                        <p id="calc-gaji-baru-note" class="text-[9px] text-kpu-600 font-semibold mt-1">Isi Tgl Mulai Berlaku Gaji dan Masa Kerja SK (Tahun).</p>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 space-y-3">
-                                <div class="flex items-start gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-white border border-blue-200 text-blue-700 flex items-center justify-center flex-shrink-0">
-                                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                                    </div>
-                                    <div class="flex-1">
-                                        <label for="form-berkas-kgb" class="block text-xs font-bold text-gray-700 uppercase mb-1">Unggah Berkas KGB</label>
-                                        <p class="text-[10px] text-gray-500 mb-2">PDF, JPG, PNG, DOC, atau DOCX. Maksimal 3 MB per berkas dan 3 berkas.</p>
-                                        <input type="file" id="form-berkas-kgb" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,application/pdf,image/jpeg,image/png" onchange="handleKgbFiles(event)" class="block w-full text-xs text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-blue-700 file:text-white file:font-bold hover:file:bg-blue-800 cursor-pointer">
-                                    </div>
-                                </div>
-                                <div id="kgb-file-list" class="space-y-2"></div>
                             </div>
 
                             <div class="flex flex-col sm:flex-row gap-2 pt-4">
@@ -690,8 +689,12 @@
                                     <span class="font-bold text-kpu-900" id="conf-gaji-baru">-</span>
                                 </div>
                                 <div class="grid grid-cols-2 border-t pt-2 mt-2">
-                                    <span class="text-gray-500 font-medium">Berkas KGB:</span>
-                                    <span class="font-bold text-gray-900" id="conf-berkas-kgb">Belum ada berkas</span>
+                                    <span class="text-gray-500 font-medium">Nomor Surat:</span>
+                                    <span class="font-bold text-gray-900" id="conf-nomor-surat">-</span>
+                                </div>
+                                <div class="grid grid-cols-2">
+                                    <span class="text-gray-500 font-medium">Tempat / Tanggal Surat:</span>
+                                    <span class="font-bold text-gray-900" id="conf-tempat-tanggal-surat">-</span>
                                 </div>
                             </div>
 
@@ -906,20 +909,6 @@
                             <input type="text" id="satker-kppn" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Nomor Surat</label>
-                        <input type="text" id="satker-nomor-surat" placeholder="Contoh: 38/SDM.09-SD/1507/2026" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
-                        <p class="text-[10px] text-gray-400 mt-1">Nomor ini digunakan pada hasil cetak dan ekspor PDF dan Word KGB.</p>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tempat Surat</label>
-                        <input type="text" id="satker-tempat-surat" placeholder="Contoh: Muara Sabak" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tanggal Surat</label>
-                        <input type="date" id="satker-tanggal-surat" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
-                    </div>
-
                     <h3 class="text-md font-bold text-slate-800 border-b pb-2 pt-4"><i class="fa-solid fa-file-signature"></i> Pejabat Penandatangan</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -1547,6 +1536,14 @@
                 renderUserTable();
             } else if (viewName === 'pengajuan') {
                 populateEmployeeSelector();
+                if (!editingUsulanId) {
+                    const nomorEl = document.getElementById('form-nomor-surat');
+                    const tempatEl = document.getElementById('form-tempat-surat');
+                    const tanggalEl = document.getElementById('form-tgl-surat');
+                    if (nomorEl && !nomorEl.value) nomorEl.value = satkerConfig.nomorSurat || '';
+                    if (tempatEl && !tempatEl.value) tempatEl.value = satkerConfig.tempatSurat || '';
+                    if (tanggalEl && !tanggalEl.value) tanggalEl.value = new Date().toISOString().split('T')[0];
+                }
             }
         }
 
@@ -1576,6 +1573,13 @@
             }
         }
 
+        function normalizeGolonganReference(value, tipe) {
+            const raw = String(value || '').trim();
+            if (tipe !== 'PNS') return raw;
+            const match = raw.match(/(IV|III|II|I)[\/.]([a-e])/i);
+            return match ? `${match[1].toUpperCase()}/${match[2].toLowerCase()}` : raw;
+        }
+
         function autoFillFromMaster() {
             const id = document.getElementById('form-import-pegawai').value;
             if (!id) return;
@@ -1585,7 +1589,7 @@
                 togglePegawaiType();
                 document.getElementById('form-nama').value = peg.nama;
                 document.getElementById('form-nip').value = peg.NIP;
-                document.getElementById('form-golongan').value = peg.golongan;
+                document.getElementById('form-golongan').value = normalizeGolonganReference(peg.golongan, peg.tipe);
                 document.getElementById('form-mkg-thn').value = peg.mkgThn;
                 document.getElementById('form-mkg-bln').value = peg.mkgBln;
                 calculateAutomaticGaji();
@@ -1873,9 +1877,6 @@
             document.getElementById('satker-alamat').value = satkerConfig.alamat;
             document.getElementById('satker-telp').value = satkerConfig.telp;
             document.getElementById('satker-kppn').value = satkerConfig.kppn;
-            document.getElementById('satker-nomor-surat').value = satkerConfig.nomorSurat || '';
-            document.getElementById('satker-tempat-surat').value = satkerConfig.tempatSurat || '';
-            document.getElementById('satker-tanggal-surat').value = satkerConfig.tanggalSurat || '';
             document.getElementById('satker-sekretaris').value = satkerConfig.sekretaris;
             
             applySatkerBranding();
@@ -1887,9 +1888,6 @@
             satkerConfig.alamat = document.getElementById('satker-alamat').value;
             satkerConfig.telp = document.getElementById('satker-telp').value;
             satkerConfig.kppn = document.getElementById('satker-kppn').value;
-            satkerConfig.nomorSurat = document.getElementById('satker-nomor-surat').value.trim();
-            satkerConfig.tempatSurat = document.getElementById('satker-tempat-surat').value.trim();
-            satkerConfig.tanggalSurat = document.getElementById('satker-tanggal-surat').value;
             satkerConfig.sekretaris = document.getElementById('satker-sekretaris').value;
             
 
@@ -2083,10 +2081,32 @@
             calculateAutomaticGaji();
         }
 
+        function parseSalaryValue(value) {
+            return parseInt(String(value || '').replace(/[^0-9]/g, ''), 10) || 0;
+        }
+
+        function formatSalaryInput(input) {
+            const amount = parseSalaryValue(input.value);
+            input.value = amount ? formatCurrency(amount) : '';
+            if (amount && document.activeElement === input) {
+                requestAnimationFrame(() => {
+                    const cursor = Math.max(0, input.value.length - 2);
+                    input.setSelectionRange(cursor, cursor);
+                });
+            }
+        }
+
+        function setSalaryInputValue(amount) {
+            const input = document.getElementById('calc-gaji-lama');
+            if (input) input.value = amount ? formatCurrency(amount) : '';
+        }
+
         function calculateAutomaticGaji() {
             const tipe = document.getElementById('form-jenis-pegawai').value;
             const gol = document.getElementById('form-golongan').value;
-            const mkgThn = parseInt(document.getElementById('form-mkg-thn').value) || 0;
+            const mkgRaw = document.getElementById('form-mkg-thn').value;
+            const mkgThn = parseInt(mkgRaw, 10);
+            const tmtRaw = document.getElementById('form-sk-tmt').value;
 
             const resolveMkg = (salaryScale, targetMkg) => {
                 const available = Object.keys(salaryScale || {}).map(Number).sort((a, b) => a - b);
@@ -2094,38 +2114,36 @@
                 const eligible = available.filter(mkg => mkg <= targetMkg);
                 return eligible.length ? eligible[eligible.length - 1] : available[0];
             };
-            let mkgAcuanLama = null;
-            let mkgAcuanBaru = null;
 
-            let gajiLamaVal = 0;
+            const gajiInput = document.getElementById('calc-gaji-lama');
+            const gajiLamaVal = parseSalaryValue(gajiInput ? gajiInput.value : '');
+            const note = document.getElementById('calc-gaji-baru-note');
             let gajiBaruVal = 0;
 
-            if (tipe === 'PNS') {
-                const subDb = dbGajiPNS[gol];
+            // Tahun proyeksi berasal dari tahun TMT SK + 2 tahun, sedangkan baris referensi
+            // berasal dari masa kerja SK + 2 tahun (periode KGB berikutnya).
+            const tmtDate = tmtRaw ? new Date(`${tmtRaw}T00:00:00`) : null;
+            const hasValidTmt = tmtDate && !Number.isNaN(tmtDate.getTime());
+            const hasMkg = mkgRaw !== '' && Number.isFinite(mkgThn);
+            if (hasValidTmt && hasMkg) {
+                const tahunProyeksi = tmtDate.getFullYear() + 2;
+                const masaKerjaProyeksi = mkgThn + 2;
+                const subDb = tipe === 'PNS' ? dbGajiPNS[gol] : dbGajiPPPK[gol];
                 if (subDb) {
-                    mkgAcuanLama = resolveMkg(subDb, mkgThn);
-                    mkgAcuanBaru = resolveMkg(subDb, mkgThn + 2);
-                    gajiLamaVal = mkgAcuanLama === null ? 0 : subDb[mkgAcuanLama];
+                    const mkgAcuanBaru = resolveMkg(subDb, masaKerjaProyeksi);
                     gajiBaruVal = mkgAcuanBaru === null ? 0 : subDb[mkgAcuanBaru];
                 }
-            } else {
-                const subDb = dbGajiPPPK[gol];
-                if (subDb) {
-                    mkgAcuanLama = resolveMkg(subDb, mkgThn);
-                    mkgAcuanBaru = resolveMkg(subDb, mkgThn + 2);
-                    gajiLamaVal = mkgAcuanLama === null ? 0 : subDb[mkgAcuanLama];
-                    gajiBaruVal = mkgAcuanBaru === null ? 0 : subDb[mkgAcuanBaru];
-                }
+                if (note) note.textContent = `Acuan referensi: tahun ${tahunProyeksi} · masa kerja ${masaKerjaProyeksi} tahun.`;
+            } else if (note) {
+                note.textContent = 'Isi Tgl Mulai Berlaku Gaji dan Masa Kerja SK (Tahun).';
             }
 
-            document.getElementById('calc-gaji-lama').textContent = formatCurrency(gajiLamaVal);
             document.getElementById('calc-gaji-baru').textContent = formatCurrency(gajiBaruVal);
-            
             return { lama: gajiLamaVal, baru: gajiBaruVal };
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const inputsToWatch = ['form-golongan', 'form-mkg-thn', 'form-jenis-pegawai'];
+            const inputsToWatch = ['form-golongan', 'form-mkg-thn', 'form-jenis-pegawai', 'form-sk-tmt'];
             inputsToWatch.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.addEventListener('change', calculateAutomaticGaji);
@@ -2162,7 +2180,11 @@
                 
                 const g = calculateAutomaticGaji();
                 document.getElementById('conf-gaji-baru').textContent = formatCurrency(g.baru);
-                document.getElementById('conf-berkas-kgb').textContent = pendingKgbFiles.length ? `${pendingKgbFiles.length} berkas terlampir` : 'Belum ada berkas';
+                const nomorSurat = document.getElementById('form-nomor-surat').value.trim();
+                const tempatSurat = document.getElementById('form-tempat-surat').value.trim();
+                const tanggalSurat = document.getElementById('form-tgl-surat').value;
+                document.getElementById('conf-nomor-surat').textContent = nomorSurat || '-';
+                document.getElementById('conf-tempat-tanggal-surat').textContent = `${tempatSurat || '-'}, ${tanggalSurat ? formatDateIndo(tanggalSurat) : '-'}`;
             }
         }
 
@@ -2251,14 +2273,17 @@
             const mkgThn = parseInt(document.getElementById('form-mkg-thn').value) || 0;
             const mkgBln = parseInt(document.getElementById('form-mkg-bln').value) || 0;
             const tglSurat = document.getElementById('form-tgl-surat').value;
+            const nomorSurat = document.getElementById('form-nomor-surat').value.trim();
+            const tempatSurat = document.getElementById('form-tempat-surat').value.trim();
             
             const skNomor = document.getElementById('form-sk-nomor').value;
             const skTanggal = document.getElementById('form-sk-tgl').value;
             const skPejabat = document.getElementById('form-sk-pejabat').value;
             const unitKerja = document.getElementById('form-unit-kerja').value;
 
-            if (!nama || !nip || !tmt) {
-                showToast("Nama, NIP, dan TMT wajib diisi sebelum menyimpan!", "error");
+            const gajiPokokTerakhir = parseSalaryValue(document.getElementById('calc-gaji-lama').value);
+            if (!nama || !nip || !tmt || gajiPokokTerakhir <= 0) {
+                showToast("Nama, NIP, TMT, dan Gaji Pokok Terakhir wajib diisi sebelum menyimpan!", "error");
                 return;
             }
 
@@ -2281,14 +2306,15 @@
                         gajiBaru: gaji.baru,
                         tipe: tipe,
                         tglSurat: tglSurat || new Date().toISOString().split('T')[0],
+                        nomorSurat: nomorSurat,
+                        tempatSurat: tempatSurat,
                         skNomor: skNomor,
                         skTanggal: skTanggal,
                         skPejabat: skPejabat,
                         skTmt: tmt,
                         mkgThn: mkgThn,
                         mkgBln: mkgBln,
-                        unitKerja: unitKerja,
-                        berkasKgb: pendingKgbFiles
+                        unitKerja: unitKerja
                     };
                 }
                 editingUsulanId = null; // Reset edit state
@@ -2305,6 +2331,8 @@
                     tipe: tipe,
                     status: "Selesai",
                     tglSurat: tglSurat || new Date().toISOString().split('T')[0],
+                    nomorSurat: nomorSurat,
+                    tempatSurat: tempatSurat,
                     skNomor: skNomor,
                     skTanggal: skTanggal,
                     skPejabat: skPejabat,
@@ -2312,7 +2340,7 @@
                     mkgThn: mkgThn,
                     mkgBln: mkgBln,
                     unitKerja: unitKerja,
-                    berkasKgb: pendingKgbFiles
+                    berkasKgb: []
                 };
                 usulanList.unshift(newKgb);
                 showToast("KGB baru berhasil diproses dan disimpan ke draf!", "success");
@@ -2325,9 +2353,7 @@
             document.getElementById('form-nama').value = '';
             document.getElementById('form-nip').value = '';
             document.getElementById('form-mkg-thn').value = '';
-            pendingKgbFiles = [];
-            document.getElementById('form-berkas-kgb').value = '';
-            renderKgbFileList();
+            document.getElementById('calc-gaji-lama').value = '';
             nextStep(1);
         }
 
@@ -2344,8 +2370,10 @@
 
                 document.getElementById('form-nama').value = item.nama;
                 document.getElementById('form-nip').value = item.nip;
-                document.getElementById('form-golongan').value = item.golongan;
-                document.getElementById('form-tgl-surat').value = item.tglSurat;
+                document.getElementById('form-golongan').value = normalizeGolonganReference(item.golongan, item.tipe);
+                document.getElementById('form-tgl-surat').value = item.tglSurat || '';
+                document.getElementById('form-nomor-surat').value = item.nomorSurat || satkerConfig.nomorSurat || '';
+                document.getElementById('form-tempat-surat').value = item.tempatSurat || satkerConfig.tempatSurat || '';
 
                 document.getElementById('form-sk-pejabat').value = item.skPejabat;
                 document.getElementById('form-sk-tgl').value = item.skTanggal;
@@ -2354,9 +2382,7 @@
                 document.getElementById('form-mkg-thn').value = item.mkgThn;
                 document.getElementById('form-mkg-bln').value = item.mkgBln;
                 document.getElementById('form-unit-kerja').value = item.unitKerja;
-                pendingKgbFiles = Array.isArray(item.berkasKgb) ? [...item.berkasKgb] : [];
-                renderKgbFileList();
-
+                setSalaryInputValue(item.gajiLama);
                 editingUsulanId = item.id;
 
                 calculateAutomaticGaji();
@@ -2870,7 +2896,7 @@
                                     <tr style="vertical-align: top;">
                                         <td style="width: 55px; padding-bottom: 2px;">Nomor</td>
                                         <td width="15" style="width: 15px; text-align: center;">:</td>
-                                        <td>${satkerConfig.nomorSurat || item.id}</td>
+                                        <td>${item.nomorSurat || satkerConfig.nomorSurat || item.id}</td>
                                     </tr>
                                     <tr style="vertical-align: top;">
                                         <td style="padding-bottom: 2px;">Lamp</td>
@@ -3078,7 +3104,7 @@
                                     <tr>
                                         <td width="85" style="width: 85px; padding-bottom: 2px;">Nomor</td>
                                         <td width="15" style="width: 15px; text-align: center;">:</td>
-                                        <td style="font-weight: bold; padding-left: 5px;">${satkerConfig.nomorSurat || item.id}</td>
+                                        <td style="font-weight: bold; padding-left: 5px;">${item.nomorSurat || satkerConfig.nomorSurat || item.id}</td>
                                     </tr>
                                     <tr>
                                         <td style="padding-bottom: 2px;">Sifat</td>
@@ -3104,7 +3130,7 @@
                             </div>
                             <div style="text-align: right;">
                                 <div style="margin-bottom: 6px;">
-                                    ${satkerConfig.tempatSurat}, ${formatDateIndo(satkerConfig.tanggalSurat || item.tglSurat)}
+                                    ${item.tempatSurat || satkerConfig.tempatSurat || ""}, ${formatDateIndo(item.tglSurat || satkerConfig.tanggalSurat)}
                                 </div>
                                 <div style="text-align: left; display: inline-block; width: 260px;">
                                     <p style="font-weight: bold; margin: 0;">Kepada Yth:</p>
