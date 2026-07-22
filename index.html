@@ -485,8 +485,9 @@
                                     <th scope="col" class="px-6 py-4">No</th>
                                     <th scope="col" class="px-6 py-4">Nama Pegawai / NIP</th>
                                     <th scope="col" class="px-6 py-4">Jenis Pegawai</th>
-                                    <th scope="col" class="px-6 py-4">Pangkat / Golongan</th>
+                                    <th scope="col" class="px-6 py-4">Pangkat (PNS) / Golongan (PPPK)</th>
                                     <th scope="col" class="px-6 py-4">Masa Kerja (SK Terakhir)</th>
+                                    <th scope="col" class="px-6 py-4">TMT KGB Terakhir</th>
                                     <th scope="col" class="px-6 py-4 text-center">Aksi</th>
                                 </tr>
                             </thead>
@@ -616,7 +617,7 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div>
                                     <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Tgl Mulai Berlaku Gaji</label>
                                     <input type="date" id="form-sk-tmt" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
@@ -628,6 +629,11 @@
                                 <div>
                                     <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Masa Kerja SK (Bulan)</label>
                                     <input type="number" id="form-mkg-bln" min="0" max="11" placeholder="0" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-kpu-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-kpu-700 uppercase mb-1">Masa Kerja Berikutnya (Tahun)</label>
+                                    <input type="number" id="form-mkg-berikutnya" min="0" max="40" placeholder="Contoh: 12" oninput="calculateAutomaticGaji()" class="w-full px-3 py-2 border border-kpu-200 bg-kpu-50 rounded-lg text-sm font-bold text-kpu-900 focus:ring-2 focus:ring-kpu-500 outline-none">
+                                    <p class="text-[9px] text-gray-400 mt-1">Acuan langsung tabel referensi gaji pokok.</p>
                                 </div>
                             </div>
 
@@ -641,9 +647,9 @@
                                         </div>
                                     </div>
                                     <div class="bg-kpu-50 p-3 rounded-lg border border-kpu-100">
-                                        <p class="text-[9px] md:text-[10px] text-kpu-600 font-bold uppercase">Proyeksi Gaji Baru (+2 Tahun KGB)</p>
+                                        <p class="text-[9px] md:text-[10px] text-kpu-600 font-bold uppercase">Proyeksi Gaji Baru</p>
                                         <p id="calc-gaji-baru" class="text-base md:text-lg font-extrabold text-kpu-900">Rp 0,-</p>
-                                        <p id="calc-gaji-baru-note" class="text-[9px] text-kpu-600 font-semibold mt-1">Isi Tgl Mulai Berlaku Gaji dan Masa Kerja SK (Tahun).</p>
+                                        <p id="calc-gaji-baru-note" class="text-[9px] text-kpu-600 font-semibold mt-1">Isi Masa Kerja Berikutnya (Tahun).</p>
                                     </div>
                                 </div>
                             </div>
@@ -683,6 +689,10 @@
                                 <div class="grid grid-cols-2">
                                     <span class="text-gray-500 font-medium">Mulai Berlaku Gaji:</span>
                                     <span class="font-bold text-gray-900" id="conf-tmt">-</span>
+                                </div>
+                                <div class="grid grid-cols-2">
+                                    <span class="text-gray-500 font-medium">Masa Kerja Berikutnya:</span>
+                                    <span class="font-bold text-gray-900" id="conf-mkg-berikutnya">-</span>
                                 </div>
                                 <div class="grid grid-cols-2 border-t pt-2 mt-2">
                                     <span class="text-kpu-700 font-bold">Gaji Baru:</span>
@@ -1064,7 +1074,7 @@
                         <input type="text" id="m-peg-nip" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 mb-1">Pangkat / Golongan</label>
+                        <label id="m-lbl-gol" class="block text-xs font-bold text-gray-600 mb-1">Pangkat (PNS)</label>
                         <select id="m-peg-gol" class="w-full px-3 py-2 border rounded-lg text-sm bg-white outline-none"></select>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
@@ -1076,6 +1086,11 @@
                             <label class="block text-xs font-bold text-gray-600 mb-1">Masa Kerja (Bln)</label>
                             <input type="number" id="m-peg-bln" min="0" max="11" value="0" class="w-full px-3 py-2 border rounded-lg text-sm outline-none">
                         </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-600 mb-1">TMT KGB Terakhir</label>
+                        <input type="date" id="m-peg-tmt-kgb-terakhir" class="w-full px-3 py-2 border rounded-lg text-sm outline-none focus:ring-2 focus:ring-kpu-500">
+                        <p class="text-[9px] text-gray-400 mt-1">Notifikasi KGB berikutnya dihitung 2 tahun dari tanggal ini.</p>
                     </div>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
@@ -1265,9 +1280,9 @@
                 { username: "19800323 200912 1 002", email: "hermayanto@kpu.go.id", nama: "Hermayanto, S.Kom", role: "Pegawai", status: "Aktif", pass: "edudigital" }
             ];
             pegawaiList = [
-                { id: 101, nama: "CINTHIA SABRELLA", NIP: "199507272024212042", tipe: "PPPK", golongan: "IX", mkgThn: 0, mkgBln: 0, tmtKgbBerikutnya: "2026-02-01" },
-                { id: 102, nama: "HERMAYANTO, S.KOM", NIP: "19800323 200912 1 002", tipe: "PNS", golongan: "Penata Muda Tk.I/III.b", mkgThn: 10, mkgBln: 4, tmtKgbBerikutnya: "2025-12-01" },
-                { id: 103, nama: "ANDI PRATAMA, S.H.", NIP: "198901012015031001", tipe: "PNS", golongan: "Penata/III.c", mkgThn: 4, mkgBln: 0, tmtKgbBerikutnya: "2026-10-15" }
+                { id: 101, nama: "CINTHIA SABRELLA", NIP: "199507272024212042", tipe: "PPPK", golongan: "IX", mkgThn: 0, mkgBln: 0, tmtKgbTerakhir: "2024-02-01", tmtKgbBerikutnya: "2026-02-01" },
+                { id: 102, nama: "HERMAYANTO, S.KOM", NIP: "19800323 200912 1 002", tipe: "PNS", golongan: "Penata Muda Tk.I/III.b", mkgThn: 10, mkgBln: 4, tmtKgbTerakhir: "2023-12-01", tmtKgbBerikutnya: "2025-12-01" },
+                { id: 103, nama: "ANDI PRATAMA, S.H.", NIP: "198901012015031001", tipe: "PNS", golongan: "Penata/III.c", mkgThn: 4, mkgBln: 0, tmtKgbTerakhir: "2024-10-15", tmtKgbBerikutnya: "2026-10-15" }
             ];
             usulanList = [
                 { id: 1, nama: "CINTHIA SABRELLA", nip: "199507272024212042", golongan: "IX", tmtKgb: "2026-02-01", gajiLama: 3203600, gajiBaru: 3304400, tipe: "PPPK", status: "Selesai", tglSurat: "2026-01-29", skNomor: "548 Tahun 2024", skTanggal: "2024-04-24", skPejabat: "Sekretaris Jenderal Komisi Pemilihan Umum Republik Indonesia", skTmt: "2024-02-01", mkgThn: 0, mkgBln: 0, unitKerja: "Sekretariat KPU Kab. Tanjung Jabung Timur" },
@@ -1690,6 +1705,7 @@
                                 tmtKgbBerikutnya: "2026-10-01" 
                             };
                             pegawaiList.push(newPeg);
+            document.getElementById('m-peg-tmt-kgb-terakhir').value = '';
                             importCount++;
                         }
                     }
@@ -1710,6 +1726,35 @@
             event.target.value = ''; 
         }
 
+        function getGolonganSurat(item) {
+            const raw = String(item && item.golongan || '').trim();
+            if (!raw) return '-';
+            if (item.tipe === 'PNS') {
+                const match = raw.match(/(IV|III|II|I)[\/.]([a-e])/i);
+                return match ? `${match[1].toUpperCase()}/${match[2].toLowerCase()}` : raw;
+            }
+            return raw.replace(/^Golongan\s+/i, '').trim();
+        }
+
+        function formatPangkatGolongan(pegawai) {
+            const gol = String(pegawai && pegawai.golongan || '').trim();
+            if (!gol) return '-';
+            if (pegawai.tipe === 'PPPK') return /^Golongan\s/i.test(gol) ? gol : `Golongan ${gol}`;
+            return gol.replace(/\s*\/\s*(?=(?:IV|III|II|I)[\/.][a-e]\b)/i, ' / ').replace(/(IV|III|II|I)\.([a-e])/i, '$1/$2');
+        }
+
+        function calculateTmtKgbBerikutnya(tmtKgbTerakhir) {
+            if (!tmtKgbTerakhir) return '';
+            const date = new Date(`${tmtKgbTerakhir}T00:00:00`);
+            if (Number.isNaN(date.getTime())) return '';
+            date.setFullYear(date.getFullYear() + 2);
+            return date.toISOString().split('T')[0];
+        }
+
+        function getTmtKgbBerikutnya(pegawai) {
+            return calculateTmtKgbBerikutnya(pegawai.tmtKgbTerakhir) || pegawai.tmtKgbBerikutnya || '';
+        }
+
         function renderPegawaiTable() {
             const body = document.getElementById('table-pegawai-body');
             body.innerHTML = '';
@@ -1720,8 +1765,9 @@
                     <td class="px-6 py-4 font-semibold">${index + 1}</td>
                     <td class="px-6 py-4 font-bold text-gray-900">${peg.nama}<br><span class="text-xs font-normal text-gray-400">${peg.NIP}</span></td>
                     <td class="px-6 py-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${peg.tipe === 'PNS' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}">${peg.tipe}</span></td>
-                    <td class="px-6 py-4">${peg.golongan}</td>
+                    <td class="px-6 py-4">${formatPangkatGolongan(peg)}</td>
                     <td class="px-6 py-4 text-xs">${peg.mkgThn} Tahun ${peg.mkgBln} Bulan</td>
+                    <td class="px-6 py-4 text-xs font-semibold">${peg.tmtKgbTerakhir ? formatDateIndo(peg.tmtKgbTerakhir) : '-'}</td>
                     <td class="px-6 py-4 text-center flex justify-center gap-2">
                         <button onclick="triggerWizardFromPegawai(${peg.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold py-1 px-2.5 rounded transition-all">
                             <i class="fa-solid fa-file-circle-plus"></i> Usulkan KGB
@@ -1781,9 +1827,11 @@
             const tipe = document.getElementById('m-peg-tipe').value;
             const mGol = document.getElementById('m-peg-gol');
             const lblNip = document.getElementById('m-lbl-nip');
+            const lblGol = document.getElementById('m-lbl-gol');
             
             if (tipe === 'PNS') {
                 lblNip.textContent = "NIP";
+                lblGol.textContent = "Pangkat (PNS)";
                 mGol.innerHTML = `
                     <optgroup label="Golongan IV">
                         <option value="Penata Utama/IV/e">Penata Utama / IV/e</option>
@@ -1813,6 +1861,7 @@
                 `;
             } else {
                 lblNip.textContent = "NI PPPK";
+                lblGol.textContent = "Golongan (PPPK)";
                 mGol.innerHTML = `
                     <option value="XVII">Golongan XVII</option>
                     <option value="XVI">Golongan XVI</option>
@@ -1842,15 +1891,14 @@
             const gol = document.getElementById('m-peg-gol').value;
             const thn = parseInt(document.getElementById('m-peg-thn').value) || 0;
             const bln = parseInt(document.getElementById('m-peg-bln').value) || 0;
+            const tmtKgbTerakhir = document.getElementById('m-peg-tmt-kgb-terakhir').value;
 
-            if(!nama || !nip) {
-                showToast("Nama dan NIP wajib diisi!", "warning");
+            if(!nama || !nip || !tmtKgbTerakhir) {
+                showToast("Nama, NIP, dan TMT KGB Terakhir wajib diisi!", "warning");
                 return;
             }
 
-            const futureDate = new Date();
-            futureDate.setMonth(futureDate.getMonth() + 2); 
-            const tmtNext = futureDate.toISOString().split('T')[0];
+            const tmtNext = calculateTmtKgbBerikutnya(tmtKgbTerakhir);
 
             const newPeg = {
                 id: Date.now(),
@@ -1860,6 +1908,7 @@
                 golongan: gol,
                 mkgThn: thn,
                 mkgBln: bln,
+                tmtKgbTerakhir: tmtKgbTerakhir,
                 tmtKgbBerikutnya: tmtNext
             };
 
@@ -2104,13 +2153,13 @@
         function calculateAutomaticGaji() {
             const tipe = document.getElementById('form-jenis-pegawai').value;
             const gol = document.getElementById('form-golongan').value;
-            const mkgRaw = document.getElementById('form-mkg-thn').value;
-            const mkgThn = parseInt(mkgRaw, 10);
-            const tmtRaw = document.getElementById('form-sk-tmt').value;
+            const mkgBerikutnyaRaw = document.getElementById('form-mkg-berikutnya').value;
+            const mkgBerikutnya = parseInt(mkgBerikutnyaRaw, 10);
 
             const resolveMkg = (salaryScale, targetMkg) => {
                 const available = Object.keys(salaryScale || {}).map(Number).sort((a, b) => a - b);
                 if (!available.length) return null;
+                if (available.includes(targetMkg)) return targetMkg;
                 const eligible = available.filter(mkg => mkg <= targetMkg);
                 return eligible.length ? eligible[eligible.length - 1] : available[0];
             };
@@ -2120,22 +2169,20 @@
             const note = document.getElementById('calc-gaji-baru-note');
             let gajiBaruVal = 0;
 
-            // Tahun proyeksi berasal dari tahun TMT SK + 2 tahun, sedangkan baris referensi
-            // berasal dari masa kerja SK + 2 tahun (periode KGB berikutnya).
-            const tmtDate = tmtRaw ? new Date(`${tmtRaw}T00:00:00`) : null;
-            const hasValidTmt = tmtDate && !Number.isNaN(tmtDate.getTime());
-            const hasMkg = mkgRaw !== '' && Number.isFinite(mkgThn);
-            if (hasValidTmt && hasMkg) {
-                const tahunProyeksi = tmtDate.getFullYear() + 2;
-                const masaKerjaProyeksi = mkgThn + 2;
+            // Proyeksi memakai langsung Masa Kerja Berikutnya serta golongan PNS/PPPK
+            // yang dipilih, kemudian mencocokkannya dengan tabel referensi gaji pokok.
+            const hasMkgBerikutnya = mkgBerikutnyaRaw !== '' && Number.isFinite(mkgBerikutnya);
+            if (hasMkgBerikutnya) {
                 const subDb = tipe === 'PNS' ? dbGajiPNS[gol] : dbGajiPPPK[gol];
                 if (subDb) {
-                    const mkgAcuanBaru = resolveMkg(subDb, masaKerjaProyeksi);
-                    gajiBaruVal = mkgAcuanBaru === null ? 0 : subDb[mkgAcuanBaru];
+                    const mkgAcuan = resolveMkg(subDb, mkgBerikutnya);
+                    gajiBaruVal = mkgAcuan === null ? 0 : subDb[mkgAcuan];
+                    if (note) note.textContent = `Acuan tabel: ${tipe} golongan ${gol} · masa kerja ${mkgAcuan} tahun.`;
+                } else if (note) {
+                    note.textContent = `Referensi gaji untuk ${tipe} golongan ${gol || '-'} belum tersedia.`;
                 }
-                if (note) note.textContent = `Acuan referensi: tahun ${tahunProyeksi} · masa kerja ${masaKerjaProyeksi} tahun.`;
             } else if (note) {
-                note.textContent = 'Isi Tgl Mulai Berlaku Gaji dan Masa Kerja SK (Tahun).';
+                note.textContent = 'Isi Masa Kerja Berikutnya (Tahun).';
             }
 
             document.getElementById('calc-gaji-baru').textContent = formatCurrency(gajiBaruVal);
@@ -2143,7 +2190,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const inputsToWatch = ['form-golongan', 'form-mkg-thn', 'form-jenis-pegawai', 'form-sk-tmt'];
+            const inputsToWatch = ['form-golongan', 'form-jenis-pegawai', 'form-mkg-berikutnya'];
             inputsToWatch.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.addEventListener('change', calculateAutomaticGaji);
@@ -2179,6 +2226,7 @@
                 document.getElementById('conf-tmt').textContent = rawTmt ? formatDateIndo(rawTmt) : "-";
                 
                 const g = calculateAutomaticGaji();
+                document.getElementById('conf-mkg-berikutnya').textContent = `${document.getElementById('form-mkg-berikutnya').value || '-'} tahun`;
                 document.getElementById('conf-gaji-baru').textContent = formatCurrency(g.baru);
                 const nomorSurat = document.getElementById('form-nomor-surat').value.trim();
                 const tempatSurat = document.getElementById('form-tempat-surat').value.trim();
@@ -2272,6 +2320,8 @@
             const tmt = document.getElementById('form-sk-tmt').value;
             const mkgThn = parseInt(document.getElementById('form-mkg-thn').value) || 0;
             const mkgBln = parseInt(document.getElementById('form-mkg-bln').value) || 0;
+            const mkgBerikutnyaRaw = document.getElementById('form-mkg-berikutnya').value;
+            const mkgBerikutnya = parseInt(mkgBerikutnyaRaw, 10);
             const tglSurat = document.getElementById('form-tgl-surat').value;
             const nomorSurat = document.getElementById('form-nomor-surat').value.trim();
             const tempatSurat = document.getElementById('form-tempat-surat').value.trim();
@@ -2282,8 +2332,8 @@
             const unitKerja = document.getElementById('form-unit-kerja').value;
 
             const gajiPokokTerakhir = parseSalaryValue(document.getElementById('calc-gaji-lama').value);
-            if (!nama || !nip || !tmt || gajiPokokTerakhir <= 0) {
-                showToast("Nama, NIP, TMT, dan Gaji Pokok Terakhir wajib diisi sebelum menyimpan!", "error");
+            if (!nama || !nip || !tmt || gajiPokokTerakhir <= 0 || mkgBerikutnyaRaw === '' || !Number.isFinite(mkgBerikutnya)) {
+                showToast("Nama, NIP, TMT, Gaji Pokok Terakhir, dan Masa Kerja Berikutnya wajib diisi!", "error");
                 return;
             }
 
@@ -2314,6 +2364,7 @@
                         skTmt: tmt,
                         mkgThn: mkgThn,
                         mkgBln: mkgBln,
+                        mkgBerikutnya: mkgBerikutnya,
                         unitKerja: unitKerja
                     };
                 }
@@ -2339,6 +2390,7 @@
                     skTmt: tmt,
                     mkgThn: mkgThn,
                     mkgBln: mkgBln,
+                    mkgBerikutnya: mkgBerikutnya,
                     unitKerja: unitKerja,
                     berkasKgb: []
                 };
@@ -2353,6 +2405,7 @@
             document.getElementById('form-nama').value = '';
             document.getElementById('form-nip').value = '';
             document.getElementById('form-mkg-thn').value = '';
+            document.getElementById('form-mkg-berikutnya').value = '';
             document.getElementById('calc-gaji-lama').value = '';
             nextStep(1);
         }
@@ -2381,6 +2434,7 @@
                 document.getElementById('form-sk-tmt').value = item.skTmt;
                 document.getElementById('form-mkg-thn').value = item.mkgThn;
                 document.getElementById('form-mkg-bln').value = item.mkgBln;
+                document.getElementById('form-mkg-berikutnya').value = item.mkgBerikutnya ?? ((item.mkgThn || 0) + 2);
                 document.getElementById('form-unit-kerja').value = item.unitKerja;
                 setSalaryInputValue(item.gajiLama);
                 editingUsulanId = item.id;
@@ -2460,7 +2514,8 @@
             const alertList = document.getElementById('kgb-alert-list');
             alertList.innerHTML = '';
 
-            const today = new Date("2026-07-09"); 
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
             let hasAlerts = false;
 
             let filteredPegawai = pegawaiList;
@@ -2469,8 +2524,9 @@
             }
 
             filteredPegawai.forEach(peg => {
-                if (peg.tmtKgbBerikutnya) {
-                    const kgbDate = new Date(peg.tmtKgbBerikutnya);
+                const tmtKgbBerikutnya = getTmtKgbBerikutnya(peg);
+                if (tmtKgbBerikutnya) {
+                    const kgbDate = new Date(`${tmtKgbBerikutnya}T00:00:00`);
                     const diffTime = kgbDate - today;
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -2482,9 +2538,9 @@
                         div.innerHTML = `
                             <div>
                                 <h4 class="font-bold text-slate-800 text-sm">${peg.nama}</h4>
-                                <p class="text-xs text-slate-500">${peg.NIP} • ${peg.golongan}</p>
+                                <p class="text-xs text-slate-500">${peg.NIP} • ${formatPangkatGolongan(peg)}</p>
                                 <p class="text-xs text-amber-600 font-bold mt-1">
-                                    <i class="fa-regular fa-clock mr-1"></i> KGB dalam ${diffDays} hari (${formatDateIndo(peg.tmtKgbBerikutnya)})
+                                    <i class="fa-regular fa-clock mr-1"></i> KGB dalam ${diffDays} hari (${formatDateIndo(tmtKgbBerikutnya)})
                                 </p>
                             </div>
                             <button onclick="triggerWizardFromPegawai(${peg.id})" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs py-1.5 px-3 rounded-lg transition-colors shadow">
@@ -2829,9 +2885,6 @@
                             <button onclick="exportToPdf(${item.id})" class="text-red-600 hover:text-red-800 hover:bg-red-50 p-1.5 rounded transition-all" title="Cetak / Simpan PDF">
                                 <i class="fa-solid fa-file-pdf text-sm"></i>
                             </button>
-                            <button onclick="exportToWord(${item.id})" class="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 p-1.5 rounded transition-all" title="Export Word">
-                                <i class="fa-solid fa-file-word text-sm"></i>
-                            </button>
                             ${(item.berkasKgb && item.berkasKgb.length) ? `
                             <button onclick="showKgbFiles(${item.id})" class="text-amber-600 hover:text-amber-800 hover:bg-amber-50 p-1.5 rounded transition-all relative" title="Berkas KGB">
                                 <i class="fa-solid fa-paperclip text-sm"></i><span class="absolute -top-1 -right-1 bg-amber-600 text-white rounded-full min-w-4 h-4 px-1 text-[8px] flex items-center justify-center">${item.berkasKgb.length}</span>
@@ -2958,7 +3011,7 @@
                             <tr style="vertical-align: top;">
                                 <td style="padding-bottom: 2px;">3.&nbsp;&nbsp;Golongan</td>
                                 <td width="15" style="width: 15px; text-align: center;">:</td>
-                                <td style="font-weight: bold;">${item.golongan}</td>
+                                <td style="font-weight: bold;">${getGolonganSurat(item)}</td>
                             </tr>
                             <tr style="vertical-align: top;">
                                 <td style="padding-bottom: 2px;">4.&nbsp;&nbsp;Kantor/Tempat Bekerja</td>
@@ -3017,7 +3070,7 @@
                             <tr style="vertical-align: top;">
                                 <td style="padding-bottom: 2px;">7.&nbsp;&nbsp;Berdasarkan masa kerja</td>
                                 <td width="15" style="width: 15px; text-align: center;">:</td>
-                                <td>${item.mkgThn + 2} tahun 0 bulan</td>
+                                <td>${item.mkgBerikutnya ?? (item.mkgThn + 2)} tahun 0 bulan</td>
                             </tr>
                             <tr style="vertical-align: top;">
                                 <td style="padding-bottom: 2px;">8.&nbsp;&nbsp;Dalam Golongan</td>
@@ -3219,12 +3272,12 @@
                             <tr style="vertical-align: top;">
                                 <td style="padding-bottom: 2px;">7. Berdasarkan masa kerja</td>
                                 <td width="15" style="width: 15px; text-align: center;">:</td>
-                                <td>${item.mkgThn + 2} Tahun 0 Bulan</td>
+                                <td>${item.mkgBerikutnya ?? (item.mkgThn + 2)} Tahun 0 Bulan</td>
                             </tr>
                             <tr style="vertical-align: top;">
                                 <td style="padding-bottom: 2px;">8. Dalam Golongan</td>
                                 <td width="15" style="width: 15px; text-align: center;">:</td>
-                                <td style="font-weight: bold;">${item.golongan.includes('/') ? item.golongan.split('/')[1] : item.golongan}</td>
+                                <td style="font-weight: bold;">${getGolonganSurat(item)}</td>
                             </tr>
                             <tr style="vertical-align: top;">
                                 <td style="padding-bottom: 2px;">9. Mulai tanggal</td>
