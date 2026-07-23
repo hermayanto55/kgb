@@ -637,6 +637,18 @@
                                 </div>
                             </div>
 
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                                <div>
+                                    <label class="block text-xs font-bold text-emerald-800 uppercase mb-1">Mulai Tanggal Gaji Baru</label>
+                                    <input type="date" id="form-mulai-gaji-baru" onchange="syncKgbFutureDate(true)" class="w-full px-3 py-2 border border-emerald-200 bg-white rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-emerald-800 uppercase mb-1">Kenaikan Gaji yang Akan Datang</label>
+                                    <input type="date" id="form-kgb-akan-datang" class="w-full px-3 py-2 border border-emerald-200 bg-white rounded-lg text-sm font-semibold focus:ring-2 focus:ring-emerald-500 outline-none">
+                                    <p class="text-[9px] text-gray-500 mt-1">Otomatis 2 tahun dari mulai tanggal gaji baru, tetapi tetap dapat diubah.</p>
+                                </div>
+                            </div>
+
                             <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 flex flex-col gap-3">
                                 <span class="text-xs font-bold text-gray-600 uppercase tracking-wide">Estimasi Gaji Pokok Berdasarkan Database Resmi</span>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -687,8 +699,16 @@
                                     <span class="font-bold text-gray-900" id="conf-golongan">-</span>
                                 </div>
                                 <div class="grid grid-cols-2">
-                                    <span class="text-gray-500 font-medium">Mulai Berlaku Gaji:</span>
+                                    <span class="text-gray-500 font-medium">TMT SK Terakhir:</span>
                                     <span class="font-bold text-gray-900" id="conf-tmt">-</span>
+                                </div>
+                                <div class="grid grid-cols-2">
+                                    <span class="text-gray-500 font-medium">Mulai Tanggal Gaji Baru:</span>
+                                    <span class="font-bold text-gray-900" id="conf-mulai-gaji-baru">-</span>
+                                </div>
+                                <div class="grid grid-cols-2">
+                                    <span class="text-gray-500 font-medium">Kenaikan Gaji yang Akan Datang:</span>
+                                    <span class="font-bold text-gray-900" id="conf-kgb-akan-datang">-</span>
                                 </div>
                                 <div class="grid grid-cols-2">
                                     <span class="text-gray-500 font-medium">Masa Kerja Berikutnya:</span>
@@ -1607,6 +1627,11 @@
                 document.getElementById('form-golongan').value = normalizeGolonganReference(peg.golongan, peg.tipe);
                 document.getElementById('form-mkg-thn').value = peg.mkgThn;
                 document.getElementById('form-mkg-bln').value = peg.mkgBln;
+                const mulaiGajiBaru = getTmtKgbBerikutnya(peg);
+                if (mulaiGajiBaru) {
+                    document.getElementById('form-mulai-gaji-baru').value = mulaiGajiBaru;
+                    syncKgbFutureDate(true);
+                }
                 calculateAutomaticGaji();
                 showToast(`Data ${peg.nama} berhasil diisi secara otomatis!`, "success");
             }
@@ -2150,6 +2175,27 @@
             if (input) input.value = amount ? formatCurrency(amount) : '';
         }
 
+        function addYearsToIsoDate(dateValue, years) {
+            if (!dateValue) return '';
+            const date = new Date(`${dateValue}T00:00:00`);
+            if (Number.isNaN(date.getTime())) return '';
+            date.setFullYear(date.getFullYear() + years);
+            return date.toISOString().split('T')[0];
+        }
+
+        function syncKgbFutureDate(force = false) {
+            const startInput = document.getElementById('form-mulai-gaji-baru');
+            const futureInput = document.getElementById('form-kgb-akan-datang');
+            if (!startInput || !futureInput) return;
+            if (!startInput.value) {
+                const skTmt = document.getElementById('form-sk-tmt')?.value || '';
+                if (skTmt) startInput.value = addYearsToIsoDate(skTmt, 2);
+            }
+            if (startInput.value && (force || !futureInput.value)) {
+                futureInput.value = addYearsToIsoDate(startInput.value, 2);
+            }
+        }
+
         function calculateAutomaticGaji() {
             const tipe = document.getElementById('form-jenis-pegawai').value;
             const gol = document.getElementById('form-golongan').value;
@@ -2197,6 +2243,8 @@
             });
             const numberInput = document.getElementById('form-mkg-thn');
             if (numberInput) numberInput.addEventListener('input', calculateAutomaticGaji);
+            const skTmtInput = document.getElementById('form-sk-tmt');
+            if (skTmtInput) skTmtInput.addEventListener('change', () => syncKgbFutureDate(false));
         });
 
         function formatCurrency(amount) {
@@ -2224,6 +2272,10 @@
                 
                 const rawTmt = document.getElementById('form-sk-tmt').value;
                 document.getElementById('conf-tmt').textContent = rawTmt ? formatDateIndo(rawTmt) : "-";
+                const mulaiGajiBaru = document.getElementById('form-mulai-gaji-baru').value;
+                const kgbAkanDatang = document.getElementById('form-kgb-akan-datang').value;
+                document.getElementById('conf-mulai-gaji-baru').textContent = mulaiGajiBaru ? formatDateIndo(mulaiGajiBaru) : '-';
+                document.getElementById('conf-kgb-akan-datang').textContent = kgbAkanDatang ? formatDateIndo(kgbAkanDatang) : '-';
                 
                 const g = calculateAutomaticGaji();
                 document.getElementById('conf-mkg-berikutnya').textContent = `${document.getElementById('form-mkg-berikutnya').value || '-'} tahun`;
@@ -2322,6 +2374,8 @@
             const mkgBln = parseInt(document.getElementById('form-mkg-bln').value) || 0;
             const mkgBerikutnyaRaw = document.getElementById('form-mkg-berikutnya').value;
             const mkgBerikutnya = parseInt(mkgBerikutnyaRaw, 10);
+            const mulaiGajiBaru = document.getElementById('form-mulai-gaji-baru').value;
+            const kgbAkanDatang = document.getElementById('form-kgb-akan-datang').value;
             const tglSurat = document.getElementById('form-tgl-surat').value;
             const nomorSurat = document.getElementById('form-nomor-surat').value.trim();
             const tempatSurat = document.getElementById('form-tempat-surat').value.trim();
@@ -2332,14 +2386,10 @@
             const unitKerja = document.getElementById('form-unit-kerja').value;
 
             const gajiPokokTerakhir = parseSalaryValue(document.getElementById('calc-gaji-lama').value);
-            if (!nama || !nip || !tmt || gajiPokokTerakhir <= 0 || mkgBerikutnyaRaw === '' || !Number.isFinite(mkgBerikutnya)) {
-                showToast("Nama, NIP, TMT, Gaji Pokok Terakhir, dan Masa Kerja Berikutnya wajib diisi!", "error");
+            if (!nama || !nip || !tmt || !mulaiGajiBaru || !kgbAkanDatang || gajiPokokTerakhir <= 0 || mkgBerikutnyaRaw === '' || !Number.isFinite(mkgBerikutnya)) {
+                showToast("Nama, NIP, TMT, tanggal gaji baru, KGB akan datang, Gaji Pokok Terakhir, dan Masa Kerja Berikutnya wajib diisi!", "error");
                 return;
             }
-
-            const tmtKgbDate = new Date(tmt);
-            tmtKgbDate.setFullYear(tmtKgbDate.getFullYear() + 2);
-            const tmtKgbStr = tmtKgbDate.toISOString().split('T')[0];
 
             const gaji = calculateAutomaticGaji();
 
@@ -2351,7 +2401,8 @@
                         nama: nama.toUpperCase(),
                         nip: nip,
                         golongan: gol,
-                        tmtKgb: tmtKgbStr,
+                        tmtKgb: mulaiGajiBaru,
+                        kgbAkanDatang: kgbAkanDatang,
                         gajiLama: gaji.lama,
                         gajiBaru: gaji.baru,
                         tipe: tipe,
@@ -2376,7 +2427,8 @@
                     nama: nama.toUpperCase(),
                     nip: nip,
                     golongan: gol,
-                    tmtKgb: tmtKgbStr,
+                    tmtKgb: mulaiGajiBaru,
+                    kgbAkanDatang: kgbAkanDatang,
                     gajiLama: gaji.lama,
                     gajiBaru: gaji.baru,
                     tipe: tipe,
@@ -2406,6 +2458,8 @@
             document.getElementById('form-nip').value = '';
             document.getElementById('form-mkg-thn').value = '';
             document.getElementById('form-mkg-berikutnya').value = '';
+            document.getElementById('form-mulai-gaji-baru').value = '';
+            document.getElementById('form-kgb-akan-datang').value = '';
             document.getElementById('calc-gaji-lama').value = '';
             nextStep(1);
         }
@@ -2435,6 +2489,8 @@
                 document.getElementById('form-mkg-thn').value = item.mkgThn;
                 document.getElementById('form-mkg-bln').value = item.mkgBln;
                 document.getElementById('form-mkg-berikutnya').value = item.mkgBerikutnya ?? ((item.mkgThn || 0) + 2);
+                document.getElementById('form-mulai-gaji-baru').value = item.tmtKgb || addYearsToIsoDate(item.skTmt, 2);
+                document.getElementById('form-kgb-akan-datang').value = item.kgbAkanDatang || getFutureKgbDate(item.tmtKgb || addYearsToIsoDate(item.skTmt, 2));
                 document.getElementById('form-unit-kerja').value = item.unitKerja;
                 setSalaryInputValue(item.gajiLama);
                 editingUsulanId = item.id;
@@ -3085,7 +3141,7 @@
                             <tr style="vertical-align: top;">
                                 <td style="padding-bottom: 2px;">10.Kenaikan gaji yang akan datang</td>
                                 <td width="15" style="width: 15px; text-align: center;">:</td>
-                                <td>${formatDateIndo(getFutureKgbDate(item.tmtKgb))}</td>
+                                <td>${formatDateIndo(item.kgbAkanDatang || getFutureKgbDate(item.tmtKgb))}</td>
                             </tr>
                         </table>
 
@@ -3287,7 +3343,7 @@
                             <tr style="vertical-align: top;">
                                 <td style="padding-bottom: 2px;">10.Kenaikan gaji yang akan datang</td>
                                 <td width="15" style="width: 15px; text-align: center;">:</td>
-                                <td>${formatDateIndo(getFutureKgbDate(item.tmtKgb))}</td>
+                                <td>${formatDateIndo(item.kgbAkanDatang || getFutureKgbDate(item.tmtKgb))}</td>
                             </tr>
                         </table>
 
